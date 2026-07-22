@@ -1,0 +1,30 @@
+import type { DurationBucket, Show } from "./types";
+
+export const catalog: Show[] = [
+  { id: "stranger-things", title: "Stranger Things", year: 2016, platform: "netflix", genres: ["Sci-fi", "Mystery"], runtime: 51, rating: 8.6, synopsis: "A small town uncovers supernatural mysteries when a child disappears.", popularity: 99, accent: "#df4c42", watchUrl: "https://www.netflix.com/" },
+  { id: "wednesday", title: "Wednesday", year: 2022, platform: "netflix", genres: ["Comedy", "Mystery"], runtime: 45, rating: 8.0, synopsis: "Wednesday Addams investigates a twisted mystery at Nevermore Academy.", popularity: 97, accent: "#7065a8", watchUrl: "https://www.netflix.com/" },
+  { id: "bridgerton", title: "Bridgerton", year: 2020, platform: "netflix", genres: ["Romance", "Drama"], runtime: 58, rating: 7.4, synopsis: "Romance and scandal collide in Regency-era London's high society.", popularity: 94, accent: "#d58aa5", watchUrl: "https://www.netflix.com/" },
+  { id: "beef", title: "Beef", year: 2023, platform: "netflix", genres: ["Comedy", "Drama"], runtime: 35, rating: 8.0, synopsis: "A road-rage incident consumes two strangers in darkly funny ways.", popularity: 91, accent: "#d6653d", watchUrl: "https://www.netflix.com/" },
+  { id: "fallout", title: "Fallout", year: 2024, platform: "prime", genres: ["Sci-fi", "Adventure"], runtime: 60, rating: 8.3, synopsis: "A sheltered vault dweller enters a strange and violent wasteland.", popularity: 98, accent: "#dcae46", watchUrl: "https://www.primevideo.com/" },
+  { id: "reacher", title: "Reacher", year: 2022, platform: "prime", genres: ["Action", "Thriller"], runtime: 50, rating: 8.0, synopsis: "A former military investigator uncovers dangerous conspiracies.", popularity: 96, accent: "#415269", watchUrl: "https://www.primevideo.com/" },
+  { id: "the-boys", title: "The Boys", year: 2019, platform: "prime", genres: ["Action", "Comedy"], runtime: 60, rating: 8.6, synopsis: "Vigilantes take on corrupt superheroes in a sharp, violent satire.", popularity: 95, accent: "#b93631", watchUrl: "https://www.primevideo.com/" },
+  { id: "fleabag", title: "Fleabag", year: 2016, platform: "prime", genres: ["Comedy", "Drama"], runtime: 27, rating: 8.7, synopsis: "A witty Londoner navigates grief, family, and spectacular mistakes.", popularity: 90, accent: "#bd594f", watchUrl: "https://www.primevideo.com/" },
+  { id: "the-mandalorian", title: "The Mandalorian", year: 2019, platform: "disney", genres: ["Sci-fi", "Adventure"], runtime: 40, rating: 8.6, synopsis: "A lone bounty hunter protects a mysterious child across the galaxy.", popularity: 97, accent: "#667877", watchUrl: "https://www.disneyplus.com/" },
+  { id: "loki", title: "Loki", year: 2021, platform: "disney", genres: ["Sci-fi", "Comedy"], runtime: 50, rating: 8.2, synopsis: "The god of mischief tumbles through a reality-bending time mystery.", popularity: 95, accent: "#3d775d", watchUrl: "https://www.disneyplus.com/" },
+  { id: "only-murders", title: "Only Murders in the Building", year: 2021, platform: "disney", genres: ["Comedy", "Mystery"], runtime: 33, rating: 8.1, synopsis: "Three true-crime fans investigate a murder in their apartment building.", popularity: 93, accent: "#d9774a", watchUrl: "https://www.disneyplus.com/" },
+  { id: "bluey", title: "Bluey", year: 2018, platform: "disney", genres: ["Comedy", "Family"], runtime: 8, rating: 9.3, synopsis: "A lovable puppy turns everyday family life into imaginative adventures.", popularity: 92, accent: "#4f8fd3", watchUrl: "https://www.disneyplus.com/" },
+  { id: "the-last-of-us", title: "The Last of Us", year: 2023, platform: "max", genres: ["Drama", "Thriller"], runtime: 60, rating: 8.7, synopsis: "Two survivors cross a broken America and form an unlikely bond.", popularity: 99, accent: "#59624a", watchUrl: "https://www.max.com/" },
+  { id: "the-white-lotus", title: "The White Lotus", year: 2021, platform: "max", genres: ["Comedy", "Drama"], runtime: 60, rating: 8.0, synopsis: "Privilege and dysfunction unravel at an extravagant resort.", popularity: 96, accent: "#4d9f99", watchUrl: "https://www.max.com/" },
+  { id: "hacks", title: "Hacks", year: 2021, platform: "max", genres: ["Comedy", "Drama"], runtime: 30, rating: 8.2, synopsis: "A legendary comedian and a young writer form an abrasive partnership.", popularity: 92, accent: "#bd3b6d", watchUrl: "https://www.max.com/" },
+  { id: "house-of-the-dragon", title: "House of the Dragon", year: 2022, platform: "max", genres: ["Fantasy", "Drama"], runtime: 65, rating: 8.3, synopsis: "A royal dynasty fractures as its heirs battle for succession.", popularity: 94, accent: "#8b3c32", watchUrl: "https://www.max.com/" },
+];
+
+export function durationBucket(runtime: number): DurationBucket {
+  if (runtime < 30) return "quick";
+  if (runtime <= 60) return "standard";
+  return "epic";
+}
+
+export function getShow(id: string): Show | undefined {
+  return catalog.find((show) => show.id === id);
+}

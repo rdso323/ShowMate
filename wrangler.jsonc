@@ -1,0 +1,65 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "flixmatch",
+  "main": "src/worker/index.ts",
+  "compatibility_date": "2026-07-22",
+  "assets": {
+    "binding": "ASSETS",
+    "directory": "./dist",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": true
+  },
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "FlixMatchRoom",
+        "class_name": "FlixMatchRoom"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["FlixMatchRoom"]
+    }
+  ],
+  "ai": {
+    "binding": "AI"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "flixmatch-db",
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "kv_namespaces": [
+    {
+      "binding": "CACHE",
+      "id": "00000000000000000000000000000000"
+    }
+  ],
+  "vectorize": [
+    {
+      "binding": "SHOW_VECTORS",
+      "index_name": "flixmatch-shows"
+    }
+  ],
+  "workflows": [
+    {
+      "binding": "POST_MATCH_WORKFLOW",
+      "name": "flixmatch-post-match",
+      "class_name": "PostMatchWorkflow"
+    }
+  ],
+  "analytics_engine_datasets": [
+    {
+      "binding": "METRICS",
+      "dataset": "flixmatch_events"
+    }
+  ],
+  "observability": {
+    "enabled": true
+  }
+}
