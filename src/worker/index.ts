@@ -1,12 +1,12 @@
 import { routePartykitRequest } from "partyserver";
-import { catalog } from "../shared/catalog";
+import { catalog, getShow } from "../shared/catalog";
 import type { Show } from "../shared/types";
 import type { Env } from "./env";
 export { ShowMateRoom } from "./room";
 export { PostMatchWorkflow } from "./workflow";
 
 export default {
-  async fetch(request: Request, env: Env): Promise<Response> {
+  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const partyResponse = await routePartykitRequest(request, env);
     if (partyResponse) return partyResponse;
 
@@ -19,9 +19,43 @@ export default {
     }
     if (url.pathname === "/api/room-code") return Response.json({ code: roomCode() });
     if (url.pathname === "/api/catalog") return Response.json(await getCatalog(env));
+    if (url.pathname.startsWith("/api/posters/")) return posterResponse(url, env, ctx);
     return env.ASSETS.fetch(request);
   },
 } satisfies ExportedHandler<Env>;
+
+async function posterResponse(url: URL, env: Env, ctx: ExecutionContext): Promise<Response> {
+  const showId = url.pathname.slice("/api/posters/".length);
+  const show = /^[a-z0-9-]+$/.test(showId) ? getShow(showId) : undefined;
+  if (!show) return new Response("Poster not found", { status: 404 });
+
+  const size = url.searchParams.get("size") === "thumbnail" ? "thumbnail" : "full";
+  const cacheKey = `poster:v1:${show.id}:${size}`;
+  const cached = await env.CACHE.get(cacheKey, "arrayBuffer");
+  if (cached) return imageResponse(cached, "KV");
+
+  const sourceUrl = size === "thumbnail"
+    ? show.posterUrl.replace("/original_untouched/", "/medium_portrait/")
+    : show.posterUrl;
+  const upstream = await fetch(sourceUrl);
+  if (!upstream.ok) return new Response("Poster unavailable", { status: 502 });
+
+  const image = await upstream.arrayBuffer();
+  ctx.waitUntil(env.CACHE.put(cacheKey, image));
+  return imageResponse(image, "UPSTREAM", upstream.headers.get("Content-Type") ?? "image/jpeg");
+}
+
+function imageResponse(image: ArrayBuffer, source: string, contentType = "image/jpeg"): Response {
+  return new Response(image, {
+    headers: {
+      "Cache-Control": "public, max-age=31536000, immutable",
+      "Content-Type": contentType,
+      "Cross-Origin-Resource-Policy": "same-origin",
+      "X-Content-Type-Options": "nosniff",
+      "X-ShowMate-Poster": source,
+    },
+  });
+}
 
 async function getCatalog(env: Env): Promise<Show[]> {
   const cached = await env.CACHE.get<Show[]>("catalog:v2", "json");

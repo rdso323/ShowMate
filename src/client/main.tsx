@@ -35,14 +35,14 @@ function App() {
   }, [memberId]);
 
   useEffect(() => {
-    catalog.forEach((show) => preloadImage(thumbnailUrl(show.posterUrl), "low"));
+    catalog.forEach((show) => preloadImage(posterAssetUrl(show.id, "thumbnail"), "low"));
   }, []);
 
   useEffect(() => {
     if (!room?.deck.length) return;
     const shows = room.deck.map(getShow).filter((show): show is Show => Boolean(show));
-    shows.forEach((show) => preloadImage(thumbnailUrl(show.posterUrl), "low"));
-    shows.slice(0, 4).forEach((show, index) => preloadImage(show.posterUrl, index === 0 ? "high" : "low"));
+    shows.forEach((show) => preloadImage(posterAssetUrl(show.id, "thumbnail"), "low"));
+    shows.slice(0, 4).forEach((show, index) => preloadImage(posterAssetUrl(show.id, "full"), index === 0 ? "high" : "low"));
   }, [room?.deck]);
 
   useEffect(() => {
@@ -177,7 +177,7 @@ function SwipeDeck({ room, memberId, emit }: { room: RoomState; memberId: string
     const upcoming = room.deck.filter((id) => !swipes[id]).slice(0, 4);
     upcoming.forEach((id, index) => {
       const upcomingShow = getShow(id);
-      if (upcomingShow) preloadImage(upcomingShow.posterUrl, index === 0 ? "high" : "low");
+      if (upcomingShow) preloadImage(posterAssetUrl(upcomingShow.id, "full"), index === 0 ? "high" : "low");
     });
   }, [currentId, room.deck, swipes]);
 
@@ -271,8 +271,8 @@ function Poster({ show }: { show: Show }) {
   return (
     <div className="poster" style={{ "--accent": show.accent } as React.CSSProperties}>
       <div className="poster-fallback"><span>{show.genres[0]}</span><strong>{show.title}</strong><i>{show.year}</i></div>
-      <img className={`poster-image poster-thumbnail ${thumbnailLoaded ? "loaded" : ""}`} src={thumbnailUrl(show.posterUrl)} alt="" aria-hidden="true" decoding="async" fetchPriority="high" onLoad={() => setThumbnailLoaded(true)} onError={(event) => { event.currentTarget.hidden = true; }} />
-      <img className={`poster-image poster-full ${fullLoaded ? "loaded" : ""}`} src={show.posterUrl} alt={`${show.title} poster`} decoding="async" fetchPriority="high" onLoad={() => setFullLoaded(true)} onError={(event) => { event.currentTarget.hidden = true; }} />
+      <img className={`poster-image poster-thumbnail ${thumbnailLoaded ? "loaded" : ""}`} src={posterAssetUrl(show.id, "thumbnail")} alt="" aria-hidden="true" decoding="async" fetchPriority="high" onLoad={() => setThumbnailLoaded(true)} onError={(event) => { event.currentTarget.hidden = true; }} />
+      <img className={`poster-image poster-full ${fullLoaded ? "loaded" : ""}`} src={posterAssetUrl(show.id, "full")} alt={`${show.title} poster`} decoding="async" fetchPriority="high" onLoad={() => setFullLoaded(true)} onError={(event) => { event.currentTarget.hidden = true; }} />
       <span className="poster-platform">{PLATFORM_LABELS[show.platform]}</span>
     </div>
   );
@@ -317,8 +317,8 @@ function Spark() { return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m
 
 const posterPreloads = new Set<string>();
 
-function thumbnailUrl(url: string): string {
-  return url.replace("/original_untouched/", "/medium_portrait/");
+function posterAssetUrl(showId: string, size: "thumbnail" | "full"): string {
+  return `/api/posters/${showId}?size=${size}`;
 }
 
 function preloadImage(url: string, priority: "high" | "low") {
