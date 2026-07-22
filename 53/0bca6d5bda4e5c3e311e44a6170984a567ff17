@@ -1,0 +1,19 @@
+src/client/main.tsx
+  s_0afd09d2e5934a::t_1c3b05ecefa240 263-266,271-272
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "530bca6d5bda4e5c3e311e44a6170984a567ff17",
+  "prompts": {},
+  "sessions": {
+    "s_0afd09d2e5934a": {
+      "agent_id": {
+        "tool": "windsurf",
+        "id": "glow-acapella",
+        "model": "unknown"
+      },
+      "human_author": "rohandsouza <rohandsouza@cloudflare.com>"
+    }
+  }
+}
