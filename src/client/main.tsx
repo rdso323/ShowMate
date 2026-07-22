@@ -1,7 +1,7 @@
-import { StrictMode, useEffect, useMemo, useRef, useState } from "react";
+import { StrictMode, useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { PartySocket } from "partysocket";
-import { catalog, getShow } from "../shared/catalog";
+import { getShow } from "../shared/catalog";
 import {
   DURATION_BUCKETS,
   DURATION_LABELS,
@@ -17,26 +17,26 @@ import {
 } from "../shared/types";
 import "./styles.css";
 
-const storedName = localStorage.getItem("flixmatch:name") ?? "";
+const storedName = localStorage.getItem("showmate:name") ?? "";
 const initialRoom = new URLSearchParams(location.search).get("room")?.toUpperCase() ?? "";
 
 function App() {
   const [name, setName] = useState(storedName);
   const [roomInput, setRoomInput] = useState(initialRoom);
   const [roomCode, setRoomCode] = useState("");
-  const [memberId] = useState(() => sessionStorage.getItem("flixmatch:member") ?? createMemberId());
+  const [memberId] = useState(() => sessionStorage.getItem("showmate:member") ?? createMemberId());
   const [room, setRoom] = useState<RoomState>();
   const [socket, setSocket] = useState<PartySocket>();
   const [error, setError] = useState("");
   const [connected, setConnected] = useState(false);
 
   useEffect(() => {
-    sessionStorage.setItem("flixmatch:member", memberId);
+    sessionStorage.setItem("showmate:member", memberId);
   }, [memberId]);
 
   useEffect(() => {
     if (!roomCode) return;
-    const party = new PartySocket({ host: location.host, party: "flix-match-room", room: roomCode.toLowerCase() });
+    const party = new PartySocket({ host: location.host, party: "show-mate-room", room: roomCode.toLowerCase() });
     party.addEventListener("open", () => {
       setConnected(true);
       send(party, { type: "join", memberId, name });
@@ -65,7 +65,7 @@ function App() {
   }
 
   function enterRoom(code: string) {
-    localStorage.setItem("flixmatch:name", name.trim());
+    localStorage.setItem("showmate:name", name.trim());
     history.replaceState({}, "", `/?room=${code}`);
     setError("");
     setRoomCode(code);
@@ -87,7 +87,7 @@ function App() {
       {error && <div className="toast" role="alert">{error}<button onClick={() => setError("")} aria-label="Dismiss">×</button></div>}
       {room.status === "lobby" && <Lobby room={room} memberId={memberId} emit={emit} />}
       {room.status === "swiping" && <SwipeDeck room={room} memberId={memberId} emit={emit} />}
-      {(room.status === "matched" || room.status === "recommended") && <Result room={room} />}
+      {(room.status === "matched" || room.status === "recommended") && <Result room={room} memberId={memberId} emit={emit} />}
     </Shell>
   );
 }
@@ -98,7 +98,7 @@ function Landing(props: { name: string; setName: (value: string) => void; roomIn
       <div className="ambient ambient-one" />
       <div className="ambient ambient-two" />
       <section className="landing-copy">
-        <div className="wordmark"><Logo /> FlixMatch</div>
+        <div className="wordmark"><Logo /> ShowMate</div>
         <p className="eyebrow">Two people. One perfect watch.</p>
         <h1>Stop scrolling.<br /><em>Start matching.</em></h1>
         <p className="lede">Pick your platforms, swipe the hits, and find the show you both actually want tonight.</p>
@@ -164,6 +164,7 @@ function SwipeDeck({ room, memberId, emit }: { room: RoomState; memberId: string
 
   function swipe(choice: SwipeChoice) {
     if (!show || exit) return;
+    primeMatchSound();
     setExit(choice);
     window.setTimeout(() => {
       emit({ type: "swipe", memberId, showId: show.id, choice });
@@ -181,7 +182,7 @@ function SwipeDeck({ room, memberId, emit }: { room: RoomState; memberId: string
 
   return (
     <main className="screen swipe-screen">
-      <div className="deck-top"><div><span className="live-dot" /> Live with {room.members.find((member) => member.id !== memberId)?.name}</div><span>{completed + 1} / {room.deck.length}</span></div>
+      <div className="deck-top"><div><span className="live-dot" /> Live with {room.members.find((member) => member.id !== memberId)?.name}</div></div>
       <div className="progress"><i style={{ width: `${((completed + 1) / room.deck.length) * 100}%` }} /></div>
       <div className="card-stack">
         <div className="show-card behind" />
@@ -209,30 +210,48 @@ function SwipeDeck({ room, memberId, emit }: { room: RoomState; memberId: string
   );
 }
 
-function Result({ room }: { room: RoomState }) {
+function Result({ room, memberId, emit }: { room: RoomState; memberId: string; emit: (message: ClientMessage) => void }) {
   const recommendation = room.recommendation;
   const show = recommendation ? getShow(recommendation.showId) : room.matchedShowId ? getShow(room.matchedShowId) : undefined;
-  if (!show) return <LoadingRoom code={room.code} connected />;
   const matched = room.status === "matched";
+  const playedSound = useRef(false);
+
+  useEffect(() => {
+    if (matched && !playedSound.current) {
+      playedSound.current = true;
+      playMatchSound();
+    }
+  }, [matched]);
+
+  if (!show) return <LoadingRoom code={room.code} connected />;
   return (
     <main className="screen result-screen">
       <Confetti />
-      <p className="eyebrow">{matched ? "You both said yes" : "FlixMatch pick"}</p>
+      <p className="eyebrow">{matched ? "You both said yes" : "ShowMate pick"}</p>
       <h1>{matched ? "It's a match." : "We found your middle ground."}</h1>
       <div className="result-poster"><Poster show={show} /><div className="match-badge"><Heart /> {matched ? "MATCH" : "FOR YOU"}</div></div>
       <div className="result-copy"><span>{PLATFORM_LABELS[show.platform]} · {show.runtime} min</span><h2>{show.title}</h2><p>{recommendation?.reason ?? "You both picked it. Tonight's decision is settled."}</p></div>
-      <a className="primary watch-link" href={show.watchUrl} target="_blank" rel="noreferrer">Watch on {PLATFORM_LABELS[show.platform]} <Arrow /></a>
-      <small>Room {room.code} · Powered by Cloudflare's edge</small>
+      <div className="result-actions">
+        <a className="primary watch-link" href={show.watchUrl} target="_blank" rel="noreferrer">Watch on {PLATFORM_LABELS[show.platform]} <Arrow /></a>
+        {matched && <button className="continue-button" onClick={() => emit({ type: "continue", memberId })}>Keep swiping</button>}
+      </div>
+      <small>Room {room.code} · Powered by Cloudflare's edge · Posters via TVmaze</small>
     </main>
   );
 }
 
 function Poster({ show }: { show: Show }) {
-  return <div className="poster" style={{ "--accent": show.accent } as React.CSSProperties}><div className="poster-grain" /><span>{show.genres[0]}</span><strong>{show.title}</strong><i>{show.year}</i></div>;
+  return (
+    <div className="poster" style={{ "--accent": show.accent } as React.CSSProperties}>
+      <div className="poster-fallback"><span>{show.genres[0]}</span><strong>{show.title}</strong><i>{show.year}</i></div>
+      <img src={show.posterUrl} alt={`${show.title} poster`} loading="eager" onError={(event) => { event.currentTarget.hidden = true; }} />
+      <span className="poster-platform">{PLATFORM_LABELS[show.platform]}</span>
+    </div>
+  );
 }
 
 function Header({ room, connected }: { room: RoomState; connected: boolean }) {
-  return <header><div className="wordmark"><Logo /> FlixMatch</div><div className="header-room"><span className={connected ? "connected" : ""} /> {room.code}</div></header>;
+  return <header><div className="wordmark"><Logo /> ShowMate</div><div className="header-room"><span className={connected ? "connected" : ""} /> {room.code}</div></header>;
 }
 
 function Shell({ children }: { children: React.ReactNode }) {
@@ -252,15 +271,54 @@ function Avatar({ name }: { name?: string }) {
 }
 
 function Confetti() {
-  return <div className="confetti" aria-hidden="true">{Array.from({ length: 18 }, (_, index) => <i key={index} style={{ "--i": index } as React.CSSProperties} />)}</div>;
+  return (
+    <div className="confetti" aria-hidden="true">
+      {Array.from({ length: 52 }, (_, index) => <i key={index} style={{ "--i": index, "--x": `${(index * 37) % 100}%`, "--delay": `${-(index % 13) * 0.17}s`, "--duration": `${2.4 + (index % 7) * 0.16}s` } as React.CSSProperties} />)}
+    </div>
+  );
 }
 
-function Logo() { return <svg viewBox="0 0 40 40" aria-hidden="true"><path d="M10 5h20a5 5 0 0 1 5 5v20a5 5 0 0 1-5 5H10a5 5 0 0 1-5-5V10a5 5 0 0 1 5-5Z" /><path d="m14 13 14 7-14 7V13Z" /></svg>; }
+function Logo() {
+  return <svg className="showmate-logo" viewBox="0 0 48 42" aria-hidden="true"><rect className="logo-card-back" x="5" y="4" width="26" height="32" rx="7" transform="rotate(-9 18 20)" /><rect className="logo-card-front" x="17" y="6" width="26" height="32" rx="7" transform="rotate(8 30 22)" /><path className="logo-heart" d="M30 29s-8-4.7-8-10a4.7 4.7 0 0 1 8-3.4 4.7 4.7 0 0 1 8 3.4c0 5.3-8 10-8 10Z" /></svg>;
+}
 function Arrow() { return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>; }
 function Heart() { return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.7-7.5 1.1-1.1a5.5 5.5 0 0 0 0-7.8Z" /></svg>; }
 function Close() { return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg>; }
 function Copy() { return <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="11" height="11" rx="2" /><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" /></svg>; }
 function Spark() { return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2 1.7 6.3L20 10l-6.3 1.7L12 18l-1.7-6.3L4 10l6.3-1.7L12 2Z" /><path d="m19 16 .7 2.3L22 19l-2.3.7L19 22l-.7-2.3L16 19l2.3-.7L19 16Z" /></svg>; }
+
+let matchAudioContext: AudioContext | undefined;
+
+function primeMatchSound() {
+  const AudioContextClass = window.AudioContext ?? (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+  if (!AudioContextClass) return;
+  matchAudioContext ??= new AudioContextClass();
+  if (matchAudioContext.state === "suspended") void matchAudioContext.resume();
+}
+
+function playMatchSound() {
+  primeMatchSound();
+  const context = matchAudioContext;
+  if (!context) return;
+  const notes = [523.25, 659.25, 783.99, 1046.5];
+  notes.forEach((frequency, index) => {
+    const oscillator = context.createOscillator();
+    const gain = context.createGain();
+    const startsAt = context.currentTime + index * 0.09;
+    oscillator.type = "sine";
+    oscillator.frequency.setValueAtTime(frequency, startsAt);
+    gain.gain.setValueAtTime(0.0001, startsAt);
+    gain.gain.exponentialRampToValueAtTime(0.16, startsAt + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, startsAt + 0.28);
+    oscillator.connect(gain).connect(context.destination);
+    oscillator.start(startsAt);
+    oscillator.stop(startsAt + 0.3);
+  });
+  window.setTimeout(() => {
+    void context.close();
+    matchAudioContext = undefined;
+  }, 1000);
+}
 
 function send(socket: PartySocket, message: ClientMessage) { socket.send(JSON.stringify(message)); }
 function validName(name: string) { return name.trim().length >= 2; }

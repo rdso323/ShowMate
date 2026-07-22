@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { adaptDeck, applySwipe, createInitialDeck } from "../src/shared/matching";
+import { adaptDeck, applySwipe, continueAfterResult, createInitialDeck } from "../src/shared/matching";
 import type { RoomState } from "../src/shared/types";
 
 function room(): RoomState {
@@ -37,6 +37,17 @@ describe("two-person matching", () => {
 
   it("ignores swipes from people outside the room", () => {
     expect(applySwipe(room(), "intruder", "wednesday", "like")).toEqual(room());
+  });
+
+  it("keeps prior swipes and returns both people to the deck after a match", () => {
+    const firstLike = applySwipe(room(), "member_a", "wednesday", "like");
+    const match = applySwipe(firstLike, "member_b", "wednesday", "like");
+    const resumed = continueAfterResult({ ...match, recommendation: { showId: "wednesday", reason: "A match", kind: "match" } });
+
+    expect(resumed.status).toBe("swiping");
+    expect(resumed.swipes).toEqual(match.swipes);
+    expect(resumed.matchedShowId).toBeUndefined();
+    expect(resumed.recommendation).toBeUndefined();
   });
 });
 

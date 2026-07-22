@@ -1,8 +1,8 @@
-import type { FlixMatchRoom } from "./room";
+import type { ShowMateRoom } from "./room";
 import type { PostMatchParams } from "./workflow";
 
 export interface Env {
-  FlixMatchRoom: DurableObjectNamespace<FlixMatchRoom>;
+  ShowMateRoom: DurableObjectNamespace<ShowMateRoom>;
   ASSETS: Fetcher;
   AI: Ai;
   DB: D1Database;

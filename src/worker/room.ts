@@ -1,5 +1,5 @@
 import { Server, type Connection } from "partyserver";
-import { createInitialDeck, adaptDeck, applySwipe } from "../shared/matching";
+import { createInitialDeck, adaptDeck, applySwipe, continueAfterResult } from "../shared/matching";
 import type { ClientMessage, RoomState, ServerMessage } from "../shared/types";
 import { compromisePick, ensureCatalogVectors, matchReason, similarShowIds } from "./recommendations";
 import type { Env } from "./env";
@@ -8,7 +8,7 @@ interface ConnectionState {
   memberId?: string;
 }
 
-export class FlixMatchRoom extends Server<Env> {
+export class ShowMateRoom extends Server<Env> {
   static options = { hibernate: true };
   private room!: RoomState;
 
@@ -97,6 +97,11 @@ export class FlixMatchRoom extends Server<Env> {
       const pick = await compromisePick(this.env, this.room);
       this.room = { ...this.room, status: "recommended", recommendation: { ...pick, kind: "fallback" } };
       await this.startWorkflow(pick.showId, pick.reason, "fallback");
+    }
+
+    if (message.type === "continue") {
+      this.room = continueAfterResult(this.room);
+      this.metric("swiping_resumed");
     }
 
     await this.persistAndBroadcast();

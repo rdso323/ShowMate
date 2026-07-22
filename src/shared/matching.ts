@@ -53,6 +53,11 @@ function adaptiveRank(show: Show, likedGenres: Set<string>, vectorRank: Map<stri
   return show.popularity + genreAffinity + (vectorRank.get(show.id) ?? 0) * 40;
 }
 
+export function continueAfterResult(state: RoomState): RoomState {
+  if (state.status !== "matched" && state.status !== "recommended") return state;
+  return { ...state, status: "swiping", matchedShowId: undefined, recommendation: undefined };
+}
+
 export function likedShowIds(state: RoomState): string[] {
   return [...new Set(Object.values(state.swipes).flatMap((swipes) =>
     Object.entries(swipes).filter(([, choice]) => choice === "like").map(([id]) => id),

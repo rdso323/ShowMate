@@ -2,7 +2,7 @@ import { routePartykitRequest } from "partyserver";
 import { catalog } from "../shared/catalog";
 import type { Show } from "../shared/types";
 import type { Env } from "./env";
-export { FlixMatchRoom } from "./room";
+export { ShowMateRoom } from "./room";
 export { PostMatchWorkflow } from "./workflow";
 
 export default {
@@ -24,12 +24,12 @@ export default {
 } satisfies ExportedHandler<Env>;
 
 async function getCatalog(env: Env): Promise<Show[]> {
-  const cached = await env.CACHE.get<Show[]>("catalog:v1", "json");
+  const cached = await env.CACHE.get<Show[]>("catalog:v2", "json");
   if (cached) return cached;
   try {
-    const result = await env.DB.prepare("SELECT id, title, year, platform, genres, runtime, rating, synopsis, popularity, accent, watch_url AS watchUrl FROM shows ORDER BY popularity DESC").all<Record<string, unknown>>();
+    const result = await env.DB.prepare("SELECT id, title, year, platform, genres, runtime, rating, synopsis, popularity, accent, poster_url AS posterUrl, watch_url AS watchUrl FROM shows ORDER BY popularity DESC").all<Record<string, unknown>>();
     const shows = result.results.map((row) => ({ ...row, genres: JSON.parse(String(row.genres)) })) as unknown as Show[];
-    await env.CACHE.put("catalog:v1", JSON.stringify(shows), { expirationTtl: 3600 });
+    await env.CACHE.put("catalog:v2", JSON.stringify(shows), { expirationTtl: 3600 });
     return shows;
   } catch {
     return catalog;

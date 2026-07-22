@@ -16,6 +16,7 @@ export interface Show {
   synopsis: string;
   popularity: number;
   accent: string;
+  posterUrl: string;
   watchUrl: string;
 }
 
@@ -49,7 +50,8 @@ export type ClientMessage =
   | { type: "configure"; memberId: string; platforms: Platform[]; durations: DurationBucket[] }
   | { type: "start"; memberId: string }
   | { type: "swipe"; memberId: string; showId: string; choice: SwipeChoice }
-  | { type: "pick-for-us"; memberId: string };
+  | { type: "pick-for-us"; memberId: string }
+  | { type: "continue"; memberId: string };
 
 export type ServerMessage =
   | { type: "state"; state: RoomState }
