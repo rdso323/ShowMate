@@ -12,8 +12,10 @@
     "cf-typegen": "wrangler types",
     "db:migrate:local": "wrangler d1 migrations apply showmate-db --local",
     "db:migrate:individual": "wrangler d1 migrations apply showmate-db --remote --config wrangler.individual.jsonc",
+    "db:migrate:public": "wrangler d1 migrations apply showmate-db --remote --config wrangler.public.jsonc",
     "deploy": "npm run build && wrangler deploy",
-    "deploy:individual": "npm run build && wrangler deploy --config wrangler.individual.jsonc"
+    "deploy:individual": "npm run build && wrangler deploy --config wrangler.individual.jsonc",
+    "deploy:public": "npm run build && wrangler deploy --config wrangler.public.jsonc"
   },
   "dependencies": {
     "@vitejs/plugin-react": "4.7.0",
