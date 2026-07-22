@@ -1,0 +1,23 @@
+package.json
+  s_0afd09d2e5934a::t_163843dd7aa01d 14-16
+wrangler.individual.jsonc
+  s_0afd09d2e5934a::t_8a9b4eaf660408 1-35,37-42,44-68
+  s_0afd09d2e5934a::t_50f9d9bdca669f 36
+  s_0afd09d2e5934a::t_acb4a5ed543194 43
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "c457f41699d36ac13785b92e2746feffdd5b9e3f",
+  "prompts": {},
+  "sessions": {
+    "s_0afd09d2e5934a": {
+      "agent_id": {
+        "tool": "windsurf",
+        "id": "glow-acapella",
+        "model": "unknown"
+      },
+      "human_author": "rohandsouza <rohandsouza@cloudflare.com>"
+    }
+  }
+}
