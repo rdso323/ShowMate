@@ -260,19 +260,16 @@ function Result({ room, memberId, emit }: { room: RoomState; memberId: string; e
 }
 
 function Poster({ show }: { show: Show }) {
-  const [thumbnailLoaded, setThumbnailLoaded] = useState(false);
-  const [fullLoaded, setFullLoaded] = useState(false);
-
-  useEffect(() => {
-    setThumbnailLoaded(false);
-    setFullLoaded(false);
-  }, [show.id]);
+  const [thumbnailLoadedFor, setThumbnailLoadedFor] = useState("");
+  const [fullLoadedFor, setFullLoadedFor] = useState("");
+  const thumbnailLoaded = thumbnailLoadedFor === show.id;
+  const fullLoaded = fullLoadedFor === show.id;
 
   return (
     <div className="poster" style={{ "--accent": show.accent } as React.CSSProperties}>
       <div className="poster-fallback"><span>{show.genres[0]}</span><strong>{show.title}</strong><i>{show.year}</i></div>
-      <img className={`poster-image poster-thumbnail ${thumbnailLoaded ? "loaded" : ""}`} src={posterAssetUrl(show.id, "thumbnail")} alt="" aria-hidden="true" decoding="async" fetchPriority="high" onLoad={() => setThumbnailLoaded(true)} onError={(event) => { event.currentTarget.hidden = true; }} />
-      <img className={`poster-image poster-full ${fullLoaded ? "loaded" : ""}`} src={posterAssetUrl(show.id, "full")} alt={`${show.title} poster`} decoding="async" fetchPriority="high" onLoad={() => setFullLoaded(true)} onError={(event) => { event.currentTarget.hidden = true; }} />
+      <img className={`poster-image poster-thumbnail ${thumbnailLoaded ? "loaded" : ""}`} src={posterAssetUrl(show.id, "thumbnail")} alt="" aria-hidden="true" decoding="async" fetchPriority="high" onLoad={() => setThumbnailLoadedFor(show.id)} onError={(event) => { event.currentTarget.hidden = true; }} />
+      <img className={`poster-image poster-full ${fullLoaded ? "loaded" : ""}`} src={posterAssetUrl(show.id, "full")} alt={`${show.title} poster`} decoding="async" fetchPriority="high" onLoad={() => setFullLoadedFor(show.id)} onError={(event) => { event.currentTarget.hidden = true; }} />
       <span className="poster-platform">{PLATFORM_LABELS[show.platform]}</span>
     </div>
   );
