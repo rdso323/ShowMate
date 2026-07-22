@@ -1,0 +1,76 @@
+src/worker/env.ts
+  s_0afd09d2e5934a::t_df10fe038dfb5e 1,5
+src/shared/types.ts
+  s_0afd09d2e5934a::t_4aa79c604dc75a 19
+  s_0afd09d2e5934a::t_65be97cb58502d 53-54
+src/shared/catalog.ts
+  s_0afd09d2e5934a::t_1b07213d8b9b80 4-19
+test/matching.test.ts
+  s_0afd09d2e5934a::t_fdb9aedb52a0e7 2
+  s_0afd09d2e5934a::t_10bb149be374dd 41-51
+wrangler.jsonc
+  s_0afd09d2e5934a::t_f2929409cf0503 41
+  s_0afd09d2e5934a::t_05e077405b9959 3,33,47,53,60
+  s_0afd09d2e5934a::t_adc70dc2fae47a 16-17,24
+  s_0afd09d2e5934a::t_f135df1f641ed7 34
+  s_0afd09d2e5934a::t_ae61caa25013a9 4
+src/worker/room.ts
+  s_0afd09d2e5934a::t_1c6efeb73934f4 102-106
+  s_0afd09d2e5934a::t_636a052772c5ea 2
+  s_0afd09d2e5934a::t_201e28d18e2aba 11
+src/worker/index.ts
+  s_0afd09d2e5934a::t_b583c479e2a182 30
+  s_0afd09d2e5934a::t_6de1eeba94bcff 5
+  s_0afd09d2e5934a::t_621f123dd2a7eb 27,32
+src/client/main.tsx
+  s_0afd09d2e5934a::t_811a7fd0757d59 90
+  s_0afd09d2e5934a::t_1dd7a5b330651c 1,4
+  s_0afd09d2e5934a::t_31b7a89eb5c1be 274-278
+  s_0afd09d2e5934a::t_6d575e921d317e 39
+  s_0afd09d2e5934a::t_9694a46d6c640e 213,217-226,234-238,244-250
+  s_0afd09d2e5934a::t_3cbd565440d3ae 167
+  s_0afd09d2e5934a::t_eb32e5b50d89aa 290-292,295-302
+  s_0afd09d2e5934a::t_54e68259af8c43 20,27,34,68
+  s_0afd09d2e5934a::t_bb4f35800ee570 293-294,303-316,321-322
+  s_0afd09d2e5934a::t_dcb2dd3c5133ce 317-320
+  s_0afd09d2e5934a::t_b7cdaeb034b1ce 101,230,254
+  s_0afd09d2e5934a::t_589418231a0edf 281-283
+  s_0afd09d2e5934a::t_d141045764504e 185
+src/shared/matching.ts
+  s_0afd09d2e5934a::t_dc8d351af844a1 56-60
+package.json
+  s_0afd09d2e5934a::t_c7a79916255b69 8
+  s_0afd09d2e5934a::t_83e148f32b8b6d 2,13
+wrangler.local.jsonc
+  s_0afd09d2e5934a::t_d89c5a8d5be160 1-2,4,6-14,17-22,24-28,30-42,44-49,51-53
+  s_0afd09d2e5934a::t_398cfd7a633163 3,29,43,50
+  s_0afd09d2e5934a::t_bb154ae1b87ad4 15-16,23
+  s_0afd09d2e5934a::t_6d476566f135b1 5
+migrations/0003_show_posters.sql
+  s_0afd09d2e5934a::t_153bfc6d6f3ff4 1-20
+src/client/styles.css
+  s_0afd09d2e5934a::t_42993e0c1b618e 11-14
+  s_0afd09d2e5934a::t_719b482249e99a 96-103
+  s_0afd09d2e5934a::t_03cdc5e9cd4e9a 132-133,135,137-138,144,146-147,149,153
+  s_0afd09d2e5934a::t_556769758db8fa 150-152
+index.html
+  s_0afd09d2e5934a::t_16448d4f82e727 8
+package-lock.json
+  s_0afd09d2e5934a::t_b46784f1e92975 2,8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "ca46abd638452eff8622db7b09d5353e39d276bf",
+  "prompts": {},
+  "sessions": {
+    "s_0afd09d2e5934a": {
+      "agent_id": {
+        "tool": "windsurf",
+        "id": "glow-acapella",
+        "model": "unknown"
+      },
+      "human_author": "rohandsouza <rohandsouza@cloudflare.com>"
+    }
+  }
+}
