@@ -1,0 +1,28 @@
+src/client/main.tsx
+  s_0afd09d2e5934a::t_6a7a6511754c97 274-275
+  s_0afd09d2e5934a::t_5a8e51b05276e7 38
+  s_0afd09d2e5934a::t_86aaee5b7c6d50 320-321
+  s_0afd09d2e5934a::t_feaf8fa69ab094 44-45
+  s_0afd09d2e5934a::t_2d3aaf70cda6b7 180
+src/worker/index.ts
+  s_0afd09d2e5934a::t_8d7b7dd9d2000f 2
+  s_0afd09d2e5934a::t_f1cfbe62f70e87 27-59
+  s_0afd09d2e5934a::t_c43925fea1df27 22
+  s_0afd09d2e5934a::t_b653650f0ceffb 9
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "b7175887ff2afb3d41e7e2d93ed0d76ea409c917",
+  "prompts": {},
+  "sessions": {
+    "s_0afd09d2e5934a": {
+      "agent_id": {
+        "tool": "windsurf",
+        "id": "glow-acapella",
+        "model": "unknown"
+      },
+      "human_author": "rohandsouza <rohandsouza@cloudflare.com>"
+    }
+  }
+}
