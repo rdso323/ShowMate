@@ -94,13 +94,16 @@ header { height: 74px; padding: 0 22px; display: flex; align-items: center; just
 .show-card.exit-like { transform: translateX(130%) rotate(18deg); opacity: 0; }
 .show-card.exit-pass { transform: translateX(-130%) rotate(-18deg); opacity: 0; }
 .poster { --accent: #9854d8; width: 100%; height: 100%; min-height: 220px; background: linear-gradient(145deg, var(--accent), #17141c 82%); color: white; position: relative; overflow: hidden; }
-.poster img { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; object-fit: cover; object-position: center 28%; display: block; }
+.poster-image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 28%; display: block; opacity: 0; transition: opacity .18s ease; will-change: opacity; }
+.poster-thumbnail { z-index: 1; }
+.poster-full { z-index: 2; }
+.poster-image.loaded { opacity: 1; }
 .poster-fallback { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: flex-end; padding: 27px; background: radial-gradient(circle at 70% 20%, color-mix(in srgb, var(--accent), white 32%), transparent 35%), linear-gradient(145deg, var(--accent), #17141c 82%); }
 .poster-fallback::before { content: "SM"; position: absolute; top: 18px; left: 22px; font: 800 11px "Manrope"; letter-spacing: 3px; opacity: .8; }
 .poster-fallback span { text-transform: uppercase; letter-spacing: 3px; font-size: 9px; font-weight: 700; opacity: .75; }
 .poster-fallback strong { font: 800 clamp(29px, 8vw, 44px)/.9 "Manrope"; letter-spacing: -2px; max-width: 88%; margin-top: 8px; }
 .poster-fallback i { font-style: normal; font-size: 11px; margin-top: 11px; }
-.poster-platform { position: absolute; z-index: 2; left: 15px; bottom: 15px; border-radius: 20px; padding: 7px 10px; background: rgba(20,17,18,.78); backdrop-filter: blur(8px); color: white; text-transform: uppercase; letter-spacing: 1.2px; font-size: 8px; font-weight: 800; box-shadow: 0 3px 12px #0004; }
+.poster-platform { position: absolute; z-index: 3; left: 15px; bottom: 15px; border-radius: 20px; padding: 7px 10px; background: rgba(20,17,18,.78); backdrop-filter: blur(8px); color: white; text-transform: uppercase; letter-spacing: 1.2px; font-size: 8px; font-weight: 800; box-shadow: 0 3px 12px #0004; }
 .card-details { padding: 18px 20px; }
 .title-line { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
 .title-line h2 { font: 800 24px/1.05 "Manrope"; letter-spacing: -1px; margin: 0; }

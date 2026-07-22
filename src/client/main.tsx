@@ -1,7 +1,7 @@
 import { StrictMode, useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { PartySocket } from "partysocket";
-import { getShow } from "../shared/catalog";
+import { catalog, getShow } from "../shared/catalog";
 import {
   DURATION_BUCKETS,
   DURATION_LABELS,
@@ -33,6 +33,17 @@ function App() {
   useEffect(() => {
     sessionStorage.setItem("showmate:member", memberId);
   }, [memberId]);
+
+  useEffect(() => {
+    catalog.forEach((show) => preloadImage(thumbnailUrl(show.posterUrl), "low"));
+  }, []);
+
+  useEffect(() => {
+    if (!room?.deck.length) return;
+    const shows = room.deck.map(getShow).filter((show): show is Show => Boolean(show));
+    shows.forEach((show) => preloadImage(thumbnailUrl(show.posterUrl), "low"));
+    shows.slice(0, 4).forEach((show, index) => preloadImage(show.posterUrl, index === 0 ? "high" : "low"));
+  }, [room?.deck]);
 
   useEffect(() => {
     if (!roomCode) return;
@@ -162,6 +173,14 @@ function SwipeDeck({ room, memberId, emit }: { room: RoomState; memberId: string
   const pointerStart = useRef<number | undefined>(undefined);
   const [drag, setDrag] = useState(0);
 
+  useEffect(() => {
+    const upcoming = room.deck.filter((id) => !swipes[id]).slice(0, 4);
+    upcoming.forEach((id, index) => {
+      const upcomingShow = getShow(id);
+      if (upcomingShow) preloadImage(upcomingShow.posterUrl, index === 0 ? "high" : "low");
+    });
+  }, [currentId, room.deck, swipes]);
+
   function swipe(choice: SwipeChoice) {
     if (!show || exit) return;
     primeMatchSound();
@@ -241,10 +260,19 @@ function Result({ room, memberId, emit }: { room: RoomState; memberId: string; e
 }
 
 function Poster({ show }: { show: Show }) {
+  const [thumbnailLoaded, setThumbnailLoaded] = useState(false);
+  const [fullLoaded, setFullLoaded] = useState(false);
+
+  useEffect(() => {
+    setThumbnailLoaded(false);
+    setFullLoaded(false);
+  }, [show.id]);
+
   return (
     <div className="poster" style={{ "--accent": show.accent } as React.CSSProperties}>
       <div className="poster-fallback"><span>{show.genres[0]}</span><strong>{show.title}</strong><i>{show.year}</i></div>
-      <img src={show.posterUrl} alt={`${show.title} poster`} loading="eager" onError={(event) => { event.currentTarget.hidden = true; }} />
+      <img className={`poster-image poster-thumbnail ${thumbnailLoaded ? "loaded" : ""}`} src={thumbnailUrl(show.posterUrl)} alt="" aria-hidden="true" decoding="async" fetchPriority="high" onLoad={() => setThumbnailLoaded(true)} onError={(event) => { event.currentTarget.hidden = true; }} />
+      <img className={`poster-image poster-full ${fullLoaded ? "loaded" : ""}`} src={show.posterUrl} alt={`${show.title} poster`} decoding="async" fetchPriority="high" onLoad={() => setFullLoaded(true)} onError={(event) => { event.currentTarget.hidden = true; }} />
       <span className="poster-platform">{PLATFORM_LABELS[show.platform]}</span>
     </div>
   );
@@ -286,6 +314,21 @@ function Heart() { return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M
 function Close() { return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg>; }
 function Copy() { return <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="11" height="11" rx="2" /><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" /></svg>; }
 function Spark() { return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2 1.7 6.3L20 10l-6.3 1.7L12 18l-1.7-6.3L4 10l6.3-1.7L12 2Z" /><path d="m19 16 .7 2.3L22 19l-2.3.7L19 22l-.7-2.3L16 19l2.3-.7L19 16Z" /></svg>; }
+
+const posterPreloads = new Set<string>();
+
+function thumbnailUrl(url: string): string {
+  return url.replace("/original_untouched/", "/medium_portrait/");
+}
+
+function preloadImage(url: string, priority: "high" | "low") {
+  if (posterPreloads.has(url)) return;
+  posterPreloads.add(url);
+  const image = new Image();
+  image.decoding = "async";
+  image.fetchPriority = priority;
+  image.src = url;
+}
 
 let matchAudioContext: AudioContext | undefined;
 
