@@ -1,0 +1,19 @@
+README.md
+  s_0afd09d2e5934a::t_f66f0c0dc64ff8 1-77
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "15a35b3ed574c566f1677075a3789f3e3d0d1b14",
+  "prompts": {},
+  "sessions": {
+    "s_0afd09d2e5934a": {
+      "agent_id": {
+        "tool": "windsurf",
+        "id": "glow-acapella",
+        "model": "unknown"
+      },
+      "human_author": "rohandsouza <rohandsouza@cloudflare.com>"
+    }
+  }
+}
