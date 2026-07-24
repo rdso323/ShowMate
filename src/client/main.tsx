@@ -11,6 +11,8 @@ import {
   MIN_MEMBERS_TO_START,
   PLATFORM_LABELS,
   PLATFORMS,
+  allowedDurationBuckets,
+  normalizeDurations,
   type ClientMessage,
   type DurationBucket,
   type MediaType,
@@ -160,12 +162,21 @@ function Lobby({ room, memberId, emit }: { room: RoomState; memberId: string; em
   const isHost = room.members[0]?.id === memberId;
   const shareUrl = `${location.origin}/?room=${room.code}`;
   const mediaTypes = room.mediaTypes?.length ? room.mediaTypes : [...MEDIA_TYPES];
-  const configure = (platforms: Platform[], nextMediaTypes: MediaType[], durations: DurationBucket[]) =>
-    emit({ type: "configure", memberId, platforms, mediaTypes: nextMediaTypes, durations });
+  const allowedDurations = allowedDurationBuckets(mediaTypes);
+  const durations = normalizeDurations(mediaTypes, room.durations?.length ? room.durations : DURATION_BUCKETS);
+  const blockedDurations = DURATION_BUCKETS.filter((duration) => !allowedDurations.includes(duration));
+  const configure = (platforms: Platform[], nextMediaTypes: MediaType[], nextDurations: DurationBucket[]) =>
+    emit({
+      type: "configure",
+      memberId,
+      platforms,
+      mediaTypes: nextMediaTypes,
+      durations: normalizeDurations(nextMediaTypes, nextDurations),
+    });
   const canStart = room.members.length >= MIN_MEMBERS_TO_START
     && room.platforms.length
     && mediaTypes.length
-    && room.durations.length;
+    && durations.length;
 
   async function copyInvite() {
     await navigator.clipboard.writeText(shareUrl);
@@ -196,9 +207,33 @@ function Lobby({ room, memberId, emit }: { room: RoomState; memberId: string; em
         })}
       </section>
       <p className="member-count">{room.members.length} / {MAX_MEMBERS} joined</p>
-      <Filter title="Movies, TV, or both?" options={MEDIA_TYPES} selected={mediaTypes} labels={MEDIA_TYPE_LABELS} disabled={!isHost} onChange={(next) => configure(room.platforms, next as MediaType[], room.durations)} />
-      <Filter title="Where are you watching?" options={PLATFORMS} selected={room.platforms} labels={PLATFORM_LABELS} disabled={!isHost} onChange={(platforms) => configure(platforms as Platform[], mediaTypes, room.durations)} />
-      <Filter title="How much time do you have?" options={DURATION_BUCKETS} selected={room.durations} labels={DURATION_LABELS} disabled={!isHost} onChange={(durations) => configure(room.platforms, mediaTypes, durations as DurationBucket[])} />
+      <p className="defaults-note">Everything is selected by default — movies, TV, every platform, and every runtime. Turn options off only if you want a tighter deck.</p>
+      <Filter
+        title="Movies, TV, or both?"
+        options={MEDIA_TYPES}
+        selected={mediaTypes}
+        labels={MEDIA_TYPE_LABELS}
+        disabled={!isHost}
+        onChange={(next) => configure(room.platforms, next as MediaType[], durations)}
+      />
+      <Filter
+        title="Where are you watching?"
+        options={PLATFORMS}
+        selected={room.platforms}
+        labels={PLATFORM_LABELS}
+        disabled={!isHost}
+        onChange={(platforms) => configure(platforms as Platform[], mediaTypes, durations)}
+      />
+      <Filter
+        title="How much time do you have?"
+        options={DURATION_BUCKETS}
+        selected={durations}
+        labels={DURATION_LABELS}
+        disabled={!isHost}
+        disabledOptions={blockedDurations}
+        hint={blockedDurations.length ? "Short runtimes are hidden for movies-only rooms." : undefined}
+        onChange={(next) => configure(room.platforms, mediaTypes, next as DurationBucket[])}
+      />
       {isHost
         ? <button className="primary sticky-action" disabled={!canStart} onClick={() => emit({ type: "start", memberId })}>{canStart ? `Start swiping · ${room.members.length} people` : `Need at least ${MIN_MEMBERS_TO_START} people`} <Arrow /></button>
         : <div className="waiting-note"><span className="pulse" /> Waiting for the host to start</div>}
@@ -206,8 +241,46 @@ function Lobby({ room, memberId, emit }: { room: RoomState; memberId: string; em
   );
 }
 
-function Filter<T extends string>({ title, options, selected, labels, disabled, onChange }: { title: string; options: readonly T[]; selected: readonly T[]; labels: Record<T, string>; disabled: boolean; onChange: (value: T[]) => void }) {
-  return <section className="filter"><h3>{title}</h3><div className="chips">{options.map((option) => <button key={option} disabled={disabled} className={selected.includes(option) ? "selected" : ""} onClick={() => onChange(selected.includes(option) ? selected.filter((value) => value !== option) : [...selected, option])}>{labels[option]}</button>)}</div></section>;
+function Filter<T extends string>({
+  title,
+  options,
+  selected,
+  labels,
+  disabled,
+  disabledOptions = [],
+  hint,
+  onChange,
+}: {
+  title: string;
+  options: readonly T[];
+  selected: readonly T[];
+  labels: Record<T, string>;
+  disabled: boolean;
+  disabledOptions?: readonly T[];
+  hint?: string;
+  onChange: (value: T[]) => void;
+}) {
+  return (
+    <section className="filter">
+      <h3>{title}</h3>
+      {hint && <p className="filter-hint">{hint}</p>}
+      <div className="chips">
+        {options.map((option) => {
+          const blocked = disabledOptions.includes(option);
+          return (
+            <button
+              key={option}
+              disabled={disabled || blocked}
+              className={`${selected.includes(option) ? "selected" : ""} ${blocked ? "blocked" : ""}`}
+              onClick={() => onChange(selected.includes(option) ? selected.filter((value) => value !== option) : [...selected, option])}
+            >
+              {labels[option]}
+            </button>
+          );
+        })}
+      </div>
+    </section>
+  );
 }
 
 function SwipeDeck({ room, memberId, emit }: { room: RoomState; memberId: string; emit: (message: ClientMessage) => void }) {
@@ -241,13 +314,23 @@ function SwipeDeck({ room, memberId, emit }: { room: RoomState; memberId: string
     }, 220);
   }
 
-  if (!show) return (
-    <main className="screen deck-finished">
-      <div className="orbit"><Logo /></div><p className="eyebrow">Deck complete</p><h1>No group match yet.</h1><p>Let our edge AI combine everyone's tastes and break the tie.</p>
-      <button className="primary" onClick={() => emit({ type: "pick-for-us", memberId })}>Pick for us <Spark /></button>
-      {isHost && <HostAnalytics room={room} />}
-    </main>
-  );
+  if (!show) {
+    const mediaLabel = (room.mediaTypes?.length === 1 && room.mediaTypes[0] === "movie")
+      ? "movies"
+      : (room.mediaTypes?.length === 1 && room.mediaTypes[0] === "tv")
+        ? "TV shows"
+        : "titles";
+    return (
+      <main className="screen deck-finished">
+        <div className="orbit"><Logo /></div>
+        <p className="eyebrow">Deck complete</p>
+        <h1>We've gone through all the {mediaLabel}.</h1>
+        <p>No group match yet. Let our edge AI combine everyone's tastes and break the tie.</p>
+        <button className="primary" onClick={() => emit({ type: "pick-for-us", memberId })}>Pick for us <Spark /></button>
+        {isHost && <HostAnalytics room={room} />}
+      </main>
+    );
+  }
 
   return (
     <main className="screen swipe-screen">

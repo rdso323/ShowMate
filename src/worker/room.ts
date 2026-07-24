@@ -1,8 +1,11 @@
 import { Server, type Connection } from "partyserver";
 import { adaptDeck, applySwipe, continueAfterResult, createInitialDeck, publicRoomState } from "../shared/matching";
 import {
+  DURATION_BUCKETS,
   MAX_MEMBERS,
   MIN_MEMBERS_TO_START,
+  emptyFilterMessage,
+  normalizeDurations,
   type ClientMessage,
   type RoomState,
   type ServerMessage,
@@ -28,12 +31,18 @@ export class ShowMateRoom extends Server<Env> {
       members: [],
       platforms: ["netflix", "prime", "disney", "max"],
       mediaTypes: ["tv", "movie"],
-      durations: ["quick", "standard", "epic"],
+      durations: [...DURATION_BUCKETS],
       deck: [],
       swipes: {},
       createdAt: new Date().toISOString(),
     };
     if (!this.room.mediaTypes?.length) this.room.mediaTypes = ["tv", "movie"];
+    const legacyDurations = this.room.durations?.length ? this.room.durations : [...DURATION_BUCKETS];
+    // Pre-movie buckets used "epic" for everything 60+. Keep that intent by including "feature".
+    const migratedDurations = legacyDurations.includes("epic") && !legacyDurations.includes("feature")
+      ? [...legacyDurations, "feature" as const]
+      : legacyDurations;
+    this.room.durations = normalizeDurations(this.room.mediaTypes, migratedDurations);
     this.shows = await getCatalog(this.env).catch(() => []);
   }
 
@@ -53,8 +62,9 @@ export class ShowMateRoom extends Server<Env> {
 
     try {
       await this.handleMessage(connection, message);
-    } catch {
-      this.send(connection, { type: "error", message: "Something went wrong. Please try that again." });
+    } catch (error) {
+      const messageText = error instanceof Error && error.message ? error.message : "Something went wrong. Please try that again.";
+      this.send(connection, { type: "error", message: messageText });
     }
   }
 
@@ -77,11 +87,12 @@ export class ShowMateRoom extends Server<Env> {
 
     if (message.type === "configure") {
       if (this.room.status !== "lobby" || this.room.members[0]?.id !== message.memberId) return;
+      const mediaTypes = message.mediaTypes.length ? message.mediaTypes : this.room.mediaTypes;
       this.room = {
         ...this.room,
         platforms: message.platforms,
-        mediaTypes: message.mediaTypes.length ? message.mediaTypes : this.room.mediaTypes,
-        durations: message.durations,
+        mediaTypes,
+        durations: normalizeDurations(mediaTypes, message.durations),
       };
     }
 
@@ -92,8 +103,12 @@ export class ShowMateRoom extends Server<Env> {
         || this.room.members[0]?.id !== message.memberId
       ) return;
       if (!this.shows.length) this.shows = await getCatalog(this.env);
-      const deck = createInitialDeck(this.shows, this.room.platforms, this.room.durations, this.room.mediaTypes);
-      if (!deck.length) throw new Error("No eligible titles");
+      const durations = normalizeDurations(this.room.mediaTypes, this.room.durations);
+      this.room = { ...this.room, durations };
+      const deck = createInitialDeck(this.shows, this.room.platforms, durations, this.room.mediaTypes);
+      if (!deck.length) {
+        throw new Error(emptyFilterMessage(this.room.platforms, this.room.mediaTypes, durations));
+      }
       this.room = { ...this.room, deck, status: "swiping" };
       const deckShows = deck.map((id) => this.shows.find((show) => show.id === id)).filter((show): show is Show => Boolean(show));
       this.ctx.waitUntil(ensureCatalogVectors(this.env, deckShows).catch(() => undefined));

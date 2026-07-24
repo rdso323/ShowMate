@@ -4,7 +4,7 @@ export type Platform = (typeof PLATFORMS)[number];
 export const MEDIA_TYPES = ["tv", "movie"] as const;
 export type MediaType = (typeof MEDIA_TYPES)[number];
 
-export const DURATION_BUCKETS = ["quick", "standard", "epic"] as const;
+export const DURATION_BUCKETS = ["quick", "standard", "feature", "epic"] as const;
 export type DurationBucket = (typeof DURATION_BUCKETS)[number];
 export type SwipeChoice = "like" | "pass";
 
@@ -82,5 +82,37 @@ export const MEDIA_TYPE_LABELS: Record<MediaType, string> = {
 export const DURATION_LABELS: Record<DurationBucket, string> = {
   quick: "Under 30 min",
   standard: "30–60 min",
-  epic: "60+ min",
+  feature: "60–120 min",
+  epic: "120+ min",
 };
+
+/** Movie-only rooms skip short episode runtimes. */
+export function allowedDurationBuckets(mediaTypes: readonly MediaType[]): DurationBucket[] {
+  const movieOnly = mediaTypes.length === 1 && mediaTypes[0] === "movie";
+  if (movieOnly) return ["feature", "epic"];
+  return [...DURATION_BUCKETS];
+}
+
+export function normalizeDurations(
+  mediaTypes: readonly MediaType[],
+  durations: readonly DurationBucket[],
+): DurationBucket[] {
+  const allowed = allowedDurationBuckets(mediaTypes);
+  const next = durations.filter((duration) => allowed.includes(duration));
+  return next.length ? next : [...allowed];
+}
+
+export function emptyFilterMessage(
+  platforms: readonly Platform[],
+  mediaTypes: readonly MediaType[],
+  durations: readonly DurationBucket[],
+): string {
+  if (!platforms.length) return "Pick at least one platform so we know where you can watch.";
+  if (!mediaTypes.length) return "Pick movies, TV shows, or both to build a deck.";
+  if (!durations.length) return "Pick at least one runtime so we know how long you have.";
+
+  const mediaLabel = mediaTypes.length === 1
+    ? (mediaTypes[0] === "movie" ? "movies" : "TV shows")
+    : "titles";
+  return `No ${mediaLabel} match the filters you chose. Try adding a platform, media type, or runtime.`;
+}

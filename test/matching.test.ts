@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { catalog } from "../src/shared/catalog";
+import { catalog, durationBucket } from "../src/shared/catalog";
 import { adaptDeck, applySwipe, continueAfterResult, createInitialDeck, findMutualLike, publicRoomState } from "../src/shared/matching";
-import type { RoomState } from "../src/shared/types";
+import { allowedDurationBuckets, emptyFilterMessage, normalizeDurations, type RoomState } from "../src/shared/types";
 
 function room(overrides: Partial<RoomState> = {}): RoomState {
   return {
@@ -78,7 +78,7 @@ describe("catalog and adaptation", () => {
     expect(tvDeck.length).toBeGreaterThan(0);
     expect(tvDeck.every((id) => catalog.find((show) => show.id === id)?.mediaType === "tv")).toBe(true);
 
-    const movieDeck = createInitialDeck(catalog, ["netflix"], ["epic"], ["movie"]);
+    const movieDeck = createInitialDeck(catalog, ["netflix"], ["feature", "epic"], ["movie"]);
     expect(movieDeck.length).toBeGreaterThan(0);
     expect(movieDeck.every((id) => catalog.find((show) => show.id === id)?.mediaType === "movie")).toBe(true);
   });
@@ -104,5 +104,29 @@ describe("catalog and adaptation", () => {
     expect(catalog.length).toBeGreaterThan(100);
     expect(catalog.some((show) => show.mediaType === "movie")).toBe(true);
     expect(catalog.some((show) => show.mediaType === "tv")).toBe(true);
+  });
+
+  it("gives every seeded title a real poster URL", () => {
+    expect(catalog.every((show) => /^https?:\/\//.test(show.posterUrl))).toBe(true);
+  });
+});
+
+describe("duration filters", () => {
+  it("splits runtimes into short, hour, feature, and epic buckets", () => {
+    expect(durationBucket(22)).toBe("quick");
+    expect(durationBucket(45)).toBe("standard");
+    expect(durationBucket(110)).toBe("feature");
+    expect(durationBucket(150)).toBe("epic");
+  });
+
+  it("blocks short runtimes for movies-only rooms and backfills longer ones", () => {
+    expect(allowedDurationBuckets(["movie"])).toEqual(["feature", "epic"]);
+    expect(normalizeDurations(["movie"], ["quick", "standard", "feature"])).toEqual(["feature"]);
+    expect(normalizeDurations(["movie"], ["quick", "standard"])).toEqual(["feature", "epic"]);
+  });
+
+  it("explains empty filter combinations clearly", () => {
+    expect(emptyFilterMessage(["netflix"], ["movie"], ["quick"])).toMatch(/No movies match/i);
+    expect(emptyFilterMessage([], ["tv"], ["standard"])).toMatch(/platform/i);
   });
 });
