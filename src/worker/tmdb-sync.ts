@@ -80,8 +80,19 @@ export async function syncCatalogFromTmdb(env: Env): Promise<{ upserted: number;
   // Enrich a capped slice so the daily cron stays within Worker time limits.
   const withRuntime = await enrichRuntimes(apiKey, shows.slice(0, 80));
   const remainder = shows.slice(80);
-  const upserted = await upsertCatalog(env, [...withRuntime, ...remainder]);
+  const candidates = [...withRuntime, ...remainder];
+  // Never persist a title whose poster cannot be fetched from TMDB's CDN.
+  const verified = await filterShowsWithReachablePosters(candidates);
+  if (!verified.length) {
+    return { upserted: 0, skipped: true, reason: "TMDB sync produced no titles with reachable cover art" };
+  }
+  const upserted = await upsertCatalog(env, verified);
   await env.CACHE.put("catalog-sync:last", new Date().toISOString(), { expirationTtl: 60 * 60 * 24 * 14 });
+  await env.CACHE.put(
+    "catalog-sync:stats",
+    JSON.stringify({ at: new Date().toISOString(), collected: shows.length, verified: verified.length }),
+    { expirationTtl: 60 * 60 * 24 * 14 },
+  );
   return { upserted, skipped: false };
 }
 
@@ -134,8 +145,10 @@ function toShow(
   trending: boolean,
 ): Show | undefined {
   const title = (item.title || item.name || "").trim();
-  const posterPath = item.poster_path;
-  if (!title || !posterPath || !item.overview) return undefined;
+  const posterPath = item.poster_path?.trim();
+  // TMDB list endpoints omit poster_path when no art exists — drop those titles entirely.
+  if (!title || !posterPath || posterPath === "null" || !item.overview) return undefined;
+  if (!posterPath.startsWith("/")) return undefined;
   const year = Number(((item.release_date || item.first_air_date || "2024").slice(0, 4)));
   const id = `${slugify(title)}-${mediaType === "movie" ? "m" : "t"}${item.id}`;
   return {
@@ -153,6 +166,50 @@ function toShow(
     posterUrl: `${IMAGE_BASE}${posterPath}`,
     watchUrl: WATCH_URLS[platform],
   };
+}
+
+async function filterShowsWithReachablePosters(shows: Show[]): Promise<Show[]> {
+  const verified: Show[] = [];
+  const chunkSize = 12;
+  for (let index = 0; index < shows.length; index += chunkSize) {
+    const chunk = shows.slice(index, index + chunkSize);
+    const results = await Promise.all(chunk.map(async (show) => {
+      const ok = await posterIsReachable(show.posterUrl);
+      return ok ? show : undefined;
+    }));
+    for (const show of results) {
+      if (show) verified.push(show);
+    }
+  }
+  return verified;
+}
+
+async function posterIsReachable(posterUrl: string): Promise<boolean> {
+  try {
+    // Check the display size the app actually serves first.
+    const sized = posterUrl.replace("/original/", "/w342/");
+    const response = await fetch(sized, {
+      method: "GET",
+      headers: {
+        "User-Agent": "ShowMate/1.0 (+https://showmate.workers.dev)",
+        Accept: "image/*,*/*;q=0.8",
+      },
+    });
+    const type = response.headers.get("content-type") || "";
+    if (response.ok && type.startsWith("image")) return true;
+    if (sized === posterUrl) return false;
+    const fallback = await fetch(posterUrl, {
+      method: "GET",
+      headers: {
+        "User-Agent": "ShowMate/1.0 (+https://showmate.workers.dev)",
+        Accept: "image/*,*/*;q=0.8",
+      },
+    });
+    const fallbackType = fallback.headers.get("content-type") || "";
+    return fallback.ok && fallbackType.startsWith("image");
+  } catch {
+    return false;
+  }
 }
 
 function inferPlatform(item: TmdbListItem): Platform {
