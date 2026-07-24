@@ -1,7 +1,9 @@
 import { routePartykitRequest } from "partyserver";
-import { catalog, getShow } from "../shared/catalog";
-import type { Show } from "../shared/types";
+import { getShow } from "../shared/catalog";
+import { posterSourceUrl } from "../shared/posters";
+import { getCatalog } from "./catalog-store";
 import type { Env } from "./env";
+import { syncCatalogFromTmdb } from "./tmdb-sync";
 export { ShowMateRoom } from "./room";
 export { PostMatchWorkflow } from "./workflow";
 
@@ -14,29 +16,54 @@ export default {
     if (url.pathname === "/api/health") {
       return Response.json({
         ok: true,
-        integrations: ["Workers", "Durable Objects", "Workers AI", "D1", "KV", "Vectorize", "Workflows", "Analytics Engine", "PartyServer"],
+        integrations: ["Workers", "Durable Objects", "Workers AI", "D1", "KV", "Vectorize", "Workflows", "Analytics Engine", "PartyServer", "Cron Triggers"],
       });
     }
     if (url.pathname === "/api/room-code") return Response.json({ code: roomCode() });
     if (url.pathname === "/api/catalog") return Response.json(await getCatalog(env));
+    if (url.pathname === "/api/catalog/sync" && request.method === "POST") {
+      const token = env.CATALOG_SYNC_TOKEN;
+      if (token && request.headers.get("authorization") !== `Bearer ${token}`) {
+        return new Response("Unauthorized", { status: 401 });
+      }
+      const result = await syncCatalogFromTmdb(env);
+      return Response.json(result, { status: result.skipped ? 503 : 200 });
+    }
     if (url.pathname.startsWith("/api/posters/")) return posterResponse(url, env, ctx);
     return env.ASSETS.fetch(request);
+  },
+
+  async scheduled(_controller: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
+    ctx.waitUntil(syncCatalogFromTmdb(env).then((result) => {
+      env.METRICS.writeDataPoint({
+        blobs: ["catalog_sync", result.skipped ? "skipped" : "ok", result.reason ?? ""],
+        doubles: [result.upserted],
+        indexes: ["catalog"],
+      });
+    }).catch((error) => {
+      env.METRICS.writeDataPoint({
+        blobs: ["catalog_sync", "error", error instanceof Error ? error.message : "unknown"],
+        doubles: [0],
+        indexes: ["catalog"],
+      });
+    }));
   },
 } satisfies ExportedHandler<Env>;
 
 async function posterResponse(url: URL, env: Env, ctx: ExecutionContext): Promise<Response> {
   const showId = url.pathname.slice("/api/posters/".length);
-  const show = /^[a-z0-9-]+$/.test(showId) ? getShow(showId) : undefined;
+  if (!/^[a-z0-9-]+$/.test(showId)) return new Response("Poster not found", { status: 404 });
+
+  const shows = await getCatalog(env);
+  const show = shows.find((entry) => entry.id === showId) ?? getShow(showId);
   if (!show) return new Response("Poster not found", { status: 404 });
 
   const size = url.searchParams.get("size") === "thumbnail" ? "thumbnail" : "full";
-  const cacheKey = `poster:v1:${show.id}:${size}`;
+  const cacheKey = `poster:v2:${show.id}:${size}`;
   const cached = await env.CACHE.get(cacheKey, "arrayBuffer");
   if (cached) return imageResponse(cached, "KV");
 
-  const sourceUrl = size === "thumbnail"
-    ? show.posterUrl.replace("/original_untouched/", "/medium_portrait/")
-    : show.posterUrl;
+  const sourceUrl = posterSourceUrl(show, size);
   const upstream = await fetch(sourceUrl);
   if (!upstream.ok) return new Response("Poster unavailable", { status: 502 });
 
@@ -55,19 +82,6 @@ function imageResponse(image: ArrayBuffer, source: string, contentType = "image/
       "X-ShowMate-Poster": source,
     },
   });
-}
-
-async function getCatalog(env: Env): Promise<Show[]> {
-  const cached = await env.CACHE.get<Show[]>("catalog:v2", "json");
-  if (cached) return cached;
-  try {
-    const result = await env.DB.prepare("SELECT id, title, year, platform, genres, runtime, rating, synopsis, popularity, accent, poster_url AS posterUrl, watch_url AS watchUrl FROM shows ORDER BY popularity DESC").all<Record<string, unknown>>();
-    const shows = result.results.map((row) => ({ ...row, genres: JSON.parse(String(row.genres)) })) as unknown as Show[];
-    await env.CACHE.put("catalog:v2", JSON.stringify(shows), { expirationTtl: 3600 });
-    return shows;
-  } catch {
-    return catalog;
-  }
 }
 
 function roomCode(): string {

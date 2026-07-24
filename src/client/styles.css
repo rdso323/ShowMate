@@ -70,7 +70,29 @@ header { height: 74px; padding: 0 22px; display: flex; align-items: center; just
 .member span { font-size: 11px; color: #8a8176; }
 .member b { position: absolute; right: 16px; width: 8px; height: 8px; border-radius: 50%; background: #ccc; }
 .member b.online { background: #48bd62; }
+.member:nth-child(3).filled .avatar { background: #9ad7ff; }
+.member:nth-child(4).filled .avatar { background: #c9ff72; }
+.member:nth-child(5).filled .avatar { background: #ffb4a2; }
+.member-count { margin: -8px 0 18px; font-size: 12px; font-weight: 700; color: #7a7167; }
 .filter { margin: 25px 0; }
+.analytics-toggle { border: 1px solid #d4cabe; background: white; border-radius: 20px; padding: 6px 10px; font-size: 10px; font-weight: 800; cursor: pointer; }
+.host-analytics { margin: 0 0 16px; padding: 14px; border: 1px solid #e2d8cb; border-radius: 16px; background: #fffdf8; }
+.host-analytics.compact { max-height: 180px; overflow: auto; }
+.host-analytics-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
+.host-analytics-head strong { font: 800 13px "Manrope"; }
+.host-analytics-list { display: grid; gap: 10px; }
+.host-vote-row { display: grid; gap: 8px; padding-top: 8px; border-top: 1px solid #efe6da; }
+.host-vote-row:first-child { border-top: 0; padding-top: 0; }
+.host-vote-row > div { display: flex; flex-direction: column; gap: 2px; }
+.host-vote-row strong { font-size: 13px; }
+.host-vote-row > div span { font-size: 10px; color: #7d7469; }
+.host-vote-row ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.host-vote-row li { display: flex; gap: 6px; align-items: center; border-radius: 999px; padding: 4px 8px; background: #f3ebe0; font-size: 10px; font-weight: 700; }
+.host-vote-row li.like { background: #dff7e4; color: #1f7a3a; }
+.host-vote-row li.pass { background: #ffe0e4; color: #a12838; }
+.host-vote-row li.pending { color: #8a8176; }
+.host-vote-row li em { font-style: normal; opacity: .85; }
+.result-screen .host-analytics { text-align: left; margin-top: 18px; background: rgba(255,255,255,.55); }
 .filter h3 { font: 800 15px "Manrope"; margin: 0 0 11px; }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .chips button { border: 1px solid #d4cabe; border-radius: 30px; background: white; padding: 9px 13px; font-size: 12px; font-weight: 700; cursor: pointer; }

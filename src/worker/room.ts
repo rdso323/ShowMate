@@ -1,6 +1,14 @@
 import { Server, type Connection } from "partyserver";
-import { createInitialDeck, adaptDeck, applySwipe, continueAfterResult } from "../shared/matching";
-import type { ClientMessage, RoomState, ServerMessage } from "../shared/types";
+import { adaptDeck, applySwipe, continueAfterResult, createInitialDeck, publicRoomState } from "../shared/matching";
+import {
+  MAX_MEMBERS,
+  MIN_MEMBERS_TO_START,
+  type ClientMessage,
+  type RoomState,
+  type ServerMessage,
+  type Show,
+} from "../shared/types";
+import { getCatalog } from "./catalog-store";
 import { compromisePick, ensureCatalogVectors, matchReason, similarShowIds } from "./recommendations";
 import type { Env } from "./env";
 
@@ -11,6 +19,7 @@ interface ConnectionState {
 export class ShowMateRoom extends Server<Env> {
   static options = { hibernate: true };
   private room!: RoomState;
+  private shows: Show[] = [];
 
   async onStart(): Promise<void> {
     this.room = await this.ctx.storage.get<RoomState>("room") ?? {
@@ -18,15 +27,18 @@ export class ShowMateRoom extends Server<Env> {
       status: "lobby",
       members: [],
       platforms: ["netflix", "prime", "disney", "max"],
+      mediaTypes: ["tv", "movie"],
       durations: ["quick", "standard", "epic"],
       deck: [],
       swipes: {},
       createdAt: new Date().toISOString(),
     };
+    if (!this.room.mediaTypes?.length) this.room.mediaTypes = ["tv", "movie"];
+    this.shows = await getCatalog(this.env).catch(() => []);
   }
 
   onConnect(connection: Connection<ConnectionState>): void {
-    this.send(connection, { type: "state", state: this.room });
+    this.sendState(connection);
   }
 
   async onMessage(connection: Connection<ConnectionState>, value: string | ArrayBuffer | ArrayBufferView): Promise<void> {
@@ -65,16 +77,27 @@ export class ShowMateRoom extends Server<Env> {
 
     if (message.type === "configure") {
       if (this.room.status !== "lobby" || this.room.members[0]?.id !== message.memberId) return;
-      this.room = { ...this.room, platforms: message.platforms, durations: message.durations };
+      this.room = {
+        ...this.room,
+        platforms: message.platforms,
+        mediaTypes: message.mediaTypes.length ? message.mediaTypes : this.room.mediaTypes,
+        durations: message.durations,
+      };
     }
 
     if (message.type === "start") {
-      if (this.room.status !== "lobby" || this.room.members.length !== 2 || this.room.members[0]?.id !== message.memberId) return;
-      const deck = createInitialDeck(this.room.platforms, this.room.durations);
-      if (!deck.length) throw new Error("No eligible shows");
+      if (
+        this.room.status !== "lobby"
+        || this.room.members.length < MIN_MEMBERS_TO_START
+        || this.room.members[0]?.id !== message.memberId
+      ) return;
+      if (!this.shows.length) this.shows = await getCatalog(this.env);
+      const deck = createInitialDeck(this.shows, this.room.platforms, this.room.durations, this.room.mediaTypes);
+      if (!deck.length) throw new Error("No eligible titles");
       this.room = { ...this.room, deck, status: "swiping" };
-      this.ctx.waitUntil(ensureCatalogVectors(this.env, deck).catch(() => undefined));
-      this.metric("session_started");
+      const deckShows = deck.map((id) => this.shows.find((show) => show.id === id)).filter((show): show is Show => Boolean(show));
+      this.ctx.waitUntil(ensureCatalogVectors(this.env, deckShows).catch(() => undefined));
+      this.metric("session_started", String(this.room.members.length));
     }
 
     if (message.type === "swipe") {
@@ -82,19 +105,24 @@ export class ShowMateRoom extends Server<Env> {
       this.room = applySwipe(this.room, message.memberId, message.showId, message.choice);
       this.metric("swipe", message.choice);
       if (message.choice === "like" && this.room.status === "swiping") {
-        const vectorMatches = await similarShowIds(this.env, message.showId).catch(() => []);
-        this.room = { ...this.room, deck: adaptDeck(this.room, vectorMatches) };
+        const liked = this.shows.find((show) => show.id === message.showId);
+        const vectorMatches = liked ? await similarShowIds(this.env, liked).catch(() => []) : [];
+        this.room = { ...this.room, deck: adaptDeck(this.room, this.shows, vectorMatches) };
       }
       if (previousStatus === "swiping" && this.room.status === "matched" && this.room.matchedShowId) {
         const showId = this.room.matchedShowId;
-        const reason = await matchReason(this.env, showId).catch(() => "You both chose it. Tonight's watch is settled.");
+        const matched = this.shows.find((show) => show.id === showId);
+        const reason = matched
+          ? await matchReason(this.env, matched, this.room.members.length).catch(() => groupMatchFallback(this.room.members.length, matched.title))
+          : groupMatchFallback(this.room.members.length, "it");
         this.room = { ...this.room, recommendation: { showId, reason, kind: "match" } };
         await this.startWorkflow(showId, reason, "match");
       }
     }
 
     if (message.type === "pick-for-us" && this.room.status === "swiping") {
-      const pick = await compromisePick(this.env, this.room);
+      if (!this.shows.length) this.shows = await getCatalog(this.env);
+      const pick = await compromisePick(this.env, this.room, this.shows);
       this.room = { ...this.room, status: "recommended", recommendation: { ...pick, kind: "fallback" } };
       await this.startWorkflow(pick.showId, pick.reason, "fallback");
     }
@@ -111,8 +139,12 @@ export class ShowMateRoom extends Server<Env> {
     const name = rawName.trim().slice(0, 24);
     if (!name || !/^[a-zA-Z0-9_-]{6,64}$/.test(memberId)) throw new Error("Invalid member");
     const existing = this.room.members.find((member) => member.id === memberId);
-    if (!existing && this.room.members.length >= 2) {
-      this.send(connection, { type: "error", message: "This room already has two people." });
+    if (!existing && this.room.members.length >= MAX_MEMBERS) {
+      this.send(connection, { type: "error", message: `This room already has ${MAX_MEMBERS} people.` });
+      return;
+    }
+    if (!existing && this.room.status !== "lobby") {
+      this.send(connection, { type: "error", message: "This room already started swiping." });
       return;
     }
     connection.setState({ memberId });
@@ -140,10 +172,27 @@ export class ShowMateRoom extends Server<Env> {
 
   private async persistAndBroadcast(): Promise<void> {
     await this.ctx.storage.put("room", this.room);
-    this.broadcast(JSON.stringify({ type: "state", state: this.room } satisfies ServerMessage));
+    for (const connection of this.getConnections<ConnectionState>()) {
+      this.sendState(connection);
+    }
+  }
+
+  private sendState(connection: Connection<ConnectionState>): void {
+    const memberId = connection.state?.memberId;
+    const state = memberId ? publicRoomState(this.room, memberId) : {
+      ...this.room,
+      swipes: {},
+    };
+    this.send(connection, { type: "state", state });
   }
 
   private send(connection: Connection, message: ServerMessage): void {
     connection.send(JSON.stringify(message));
   }
+}
+
+function groupMatchFallback(memberCount: number, title: string): string {
+  return memberCount > 2
+    ? `The whole group chose ${title}. Tonight's watch is settled.`
+    : `You both chose ${title}. Tonight's watch is settled.`;
 }

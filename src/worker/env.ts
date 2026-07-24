@@ -10,4 +10,6 @@ export interface Env {
   SHOW_VECTORS: VectorizeIndex;
   POST_MATCH_WORKFLOW: Workflow<PostMatchParams>;
   METRICS: AnalyticsEngineDataset;
+  TMDB_API_KEY?: string;
+  CATALOG_SYNC_TOKEN?: string;
 }

@@ -1,14 +1,19 @@
-import { StrictMode, useEffect, useRef, useState } from "react";
+import { StrictMode, createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { PartySocket } from "partysocket";
-import { catalog, getShow } from "../shared/catalog";
+import { catalog as seedCatalog } from "../shared/catalog";
 import {
   DURATION_BUCKETS,
   DURATION_LABELS,
+  MAX_MEMBERS,
+  MEDIA_TYPES,
+  MEDIA_TYPE_LABELS,
+  MIN_MEMBERS_TO_START,
   PLATFORM_LABELS,
   PLATFORMS,
   type ClientMessage,
   type DurationBucket,
+  type MediaType,
   type Platform,
   type RoomState,
   type ServerMessage,
@@ -17,6 +22,7 @@ import {
 } from "../shared/types";
 import "./styles.css";
 
+const CatalogContext = createContext<Show[]>(seedCatalog);
 const storedName = localStorage.getItem("showmate:name") ?? "";
 const initialRoom = new URLSearchParams(location.search).get("room")?.toUpperCase() ?? "";
 
@@ -29,21 +35,31 @@ function App() {
   const [socket, setSocket] = useState<PartySocket>();
   const [error, setError] = useState("");
   const [connected, setConnected] = useState(false);
+  const [shows, setShows] = useState<Show[]>(seedCatalog);
 
   useEffect(() => {
     sessionStorage.setItem("showmate:member", memberId);
   }, [memberId]);
 
   useEffect(() => {
-    catalog.forEach((show) => preloadImage(posterAssetUrl(show.id, "thumbnail"), "low"));
+    fetch("/api/catalog")
+      .then((response) => response.ok ? response.json() : Promise.reject())
+      .then((payload) => {
+        if (Array.isArray(payload) && payload.length) setShows(payload as Show[]);
+      })
+      .catch(() => undefined);
   }, []);
 
   useEffect(() => {
+    shows.slice(0, 24).forEach((show) => preloadImage(posterAssetUrl(show.id, "thumbnail"), "low"));
+  }, [shows]);
+
+  useEffect(() => {
     if (!room?.deck.length) return;
-    const shows = room.deck.map(getShow).filter((show): show is Show => Boolean(show));
-    shows.forEach((show) => preloadImage(posterAssetUrl(show.id, "thumbnail"), "low"));
-    shows.slice(0, 4).forEach((show, index) => preloadImage(posterAssetUrl(show.id, "full"), index === 0 ? "high" : "low"));
-  }, [room?.deck]);
+    const deckShows = room.deck.map((id) => shows.find((show) => show.id === id)).filter((show): show is Show => Boolean(show));
+    deckShows.forEach((show) => preloadImage(posterAssetUrl(show.id, "thumbnail"), "low"));
+    deckShows.slice(0, 5).forEach((show, index) => preloadImage(posterAssetUrl(show.id, "full"), index === 0 ? "high" : "low"));
+  }, [room?.deck, shows]);
 
   useEffect(() => {
     if (!roomCode) return;
@@ -86,21 +102,30 @@ function App() {
     if (socket?.readyState === WebSocket.OPEN) send(socket, message);
   }
 
-  if (!roomCode) return <Landing name={name} setName={setName} roomInput={roomInput} setRoomInput={setRoomInput} createRoom={createRoom} joinRoom={joinRoom} error={error} />;
-  if (!room) return <Shell><LoadingRoom code={roomCode} connected={connected} /></Shell>;
-
-  const me = room.members.find((member) => member.id === memberId);
-  if (!me && room.members.length >= 2) return <Shell><FullRoom code={roomCode} /></Shell>;
-
   return (
-    <Shell>
-      <Header room={room} connected={connected} />
-      {error && <div className="toast" role="alert">{error}<button onClick={() => setError("")} aria-label="Dismiss">×</button></div>}
-      {room.status === "lobby" && <Lobby room={room} memberId={memberId} emit={emit} />}
-      {room.status === "swiping" && <SwipeDeck room={room} memberId={memberId} emit={emit} />}
-      {(room.status === "matched" || room.status === "recommended") && <Result room={room} memberId={memberId} emit={emit} />}
-    </Shell>
+    <CatalogContext.Provider value={shows}>
+      {!roomCode ? (
+        <Landing name={name} setName={setName} roomInput={roomInput} setRoomInput={setRoomInput} createRoom={createRoom} joinRoom={joinRoom} error={error} />
+      ) : !room ? (
+        <Shell><LoadingRoom code={roomCode} connected={connected} /></Shell>
+      ) : !room.members.some((member) => member.id === memberId) && room.members.length >= MAX_MEMBERS ? (
+        <Shell><FullRoom code={roomCode} /></Shell>
+      ) : (
+        <Shell>
+          <Header room={room} connected={connected} />
+          {error && <div className="toast" role="alert">{error}<button onClick={() => setError("")} aria-label="Dismiss">×</button></div>}
+          {room.status === "lobby" && <Lobby room={room} memberId={memberId} emit={emit} />}
+          {room.status === "swiping" && <SwipeDeck room={room} memberId={memberId} emit={emit} />}
+          {(room.status === "matched" || room.status === "recommended") && <Result room={room} memberId={memberId} emit={emit} />}
+        </Shell>
+      )}
+    </CatalogContext.Provider>
   );
+}
+
+function useShow(id?: string): Show | undefined {
+  const shows = useContext(CatalogContext);
+  return useMemo(() => (id ? shows.find((show) => show.id === id) : undefined), [id, shows]);
 }
 
 function Landing(props: { name: string; setName: (value: string) => void; roomInput: string; setRoomInput: (value: string) => void; createRoom: () => void; joinRoom: () => void; error: string }) {
@@ -110,17 +135,17 @@ function Landing(props: { name: string; setName: (value: string) => void; roomIn
       <div className="ambient ambient-two" />
       <section className="landing-copy">
         <div className="wordmark"><Logo /> ShowMate</div>
-        <p className="eyebrow">Two people. One perfect watch.</p>
+        <p className="eyebrow">Up to {MAX_MEMBERS} people. One perfect watch.</p>
         <h1>Stop scrolling.<br /><em>Start matching.</em></h1>
-        <p className="lede">Pick your platforms, swipe the hits, and find the show you both actually want tonight.</p>
-        <div className="proof"><span>1</span> Create a room <i /> <span>2</span> Invite your person <i /> <span>3</span> Match</div>
+        <p className="lede">Pick platforms, swipe movies and shows, and find the title your whole group actually wants tonight.</p>
+        <div className="proof"><span>1</span> Create a room <i /> <span>2</span> Invite your group <i /> <span>3</span> Match</div>
       </section>
       <section className="entry-card">
         <div className="entry-sticker">Tonight's plan</div>
         <h2>Who's watching?</h2>
         <label>Your name<input value={props.name} onChange={(event) => props.setName(event.target.value)} placeholder="Alex" maxLength={24} autoFocus /></label>
         <button className="primary" onClick={props.createRoom}>Create a room <Arrow /></button>
-        <div className="divider"><span>or join your person</span></div>
+        <div className="divider"><span>or join your group</span></div>
         <div className="join-row">
           <input aria-label="Room code" value={props.roomInput} onChange={(event) => props.setRoomInput(event.target.value.toUpperCase())} placeholder="ROOM CODE" maxLength={5} onKeyDown={(event) => event.key === "Enter" && props.joinRoom()} />
           <button onClick={props.joinRoom}>Join</button>
@@ -134,28 +159,49 @@ function Landing(props: { name: string; setName: (value: string) => void; roomIn
 function Lobby({ room, memberId, emit }: { room: RoomState; memberId: string; emit: (message: ClientMessage) => void }) {
   const isHost = room.members[0]?.id === memberId;
   const shareUrl = `${location.origin}/?room=${room.code}`;
-  const configure = (platforms: Platform[], durations: DurationBucket[]) => emit({ type: "configure", memberId, platforms, durations });
+  const mediaTypes = room.mediaTypes?.length ? room.mediaTypes : [...MEDIA_TYPES];
+  const configure = (platforms: Platform[], nextMediaTypes: MediaType[], durations: DurationBucket[]) =>
+    emit({ type: "configure", memberId, platforms, mediaTypes: nextMediaTypes, durations });
+  const canStart = room.members.length >= MIN_MEMBERS_TO_START
+    && room.platforms.length
+    && mediaTypes.length
+    && room.durations.length;
 
   async function copyInvite() {
     await navigator.clipboard.writeText(shareUrl);
   }
 
+  const openSlots = Math.min(MAX_MEMBERS, Math.max(room.members.length + 1, MIN_MEMBERS_TO_START));
+
   return (
     <main className="screen lobby-screen">
-      <div className="section-heading"><p className="eyebrow">Room {room.code}</p><h1>Set the mood.</h1><p>Choose what you both have, then let the swiping begin.</p></div>
+      <div className="section-heading"><p className="eyebrow">Room {room.code}</p><h1>Set the mood.</h1><p>Choose what the group has, invite up to {MAX_MEMBERS}, then start swiping.</p></div>
       <section className="invite-panel">
-        <div><span className="panel-label">Invite your person</span><strong>{room.code}</strong></div>
+        <div><span className="panel-label">Invite your group</span><strong>{room.code}</strong></div>
         <button onClick={copyInvite}><Copy /> Copy link</button>
       </section>
       <section className="members">
-        {[0, 1].map((slot) => {
+        {Array.from({ length: openSlots }, (_, slot) => {
           const member = room.members[slot];
-          return <div className={`member ${member ? "filled" : ""}`} key={slot}><Avatar name={member?.name} /><div><strong>{member?.name ?? "Waiting for someone"}</strong><span>{slot === 0 ? "Host" : member ? "Ready" : "Share the room link"}</span></div><b className={member?.connected ? "online" : ""} /></div>;
+          return (
+            <div className={`member ${member ? "filled" : ""}`} key={member?.id ?? `slot-${slot}`}>
+              <Avatar name={member?.name} />
+              <div>
+                <strong>{member?.name ?? (slot === 0 ? "Waiting for host" : "Open spot")}</strong>
+                <span>{slot === 0 ? "Host" : member ? "Ready" : "Share the room link"}</span>
+              </div>
+              <b className={member?.connected ? "online" : ""} />
+            </div>
+          );
         })}
       </section>
-      <Filter title="Where are you watching?" options={PLATFORMS} selected={room.platforms} labels={PLATFORM_LABELS} disabled={!isHost} onChange={(platforms) => configure(platforms as Platform[], room.durations)} />
-      <Filter title="How much time do you have?" options={DURATION_BUCKETS} selected={room.durations} labels={DURATION_LABELS} disabled={!isHost} onChange={(durations) => configure(room.platforms, durations as DurationBucket[])} />
-      {isHost ? <button className="primary sticky-action" disabled={room.members.length !== 2 || !room.platforms.length || !room.durations.length} onClick={() => emit({ type: "start", memberId })}>{room.members.length === 2 ? "Start swiping" : "Waiting for your person"} <Arrow /></button> : <div className="waiting-note"><span className="pulse" /> Waiting for the host to start</div>}
+      <p className="member-count">{room.members.length} / {MAX_MEMBERS} joined</p>
+      <Filter title="Movies, TV, or both?" options={MEDIA_TYPES} selected={mediaTypes} labels={MEDIA_TYPE_LABELS} disabled={!isHost} onChange={(next) => configure(room.platforms, next as MediaType[], room.durations)} />
+      <Filter title="Where are you watching?" options={PLATFORMS} selected={room.platforms} labels={PLATFORM_LABELS} disabled={!isHost} onChange={(platforms) => configure(platforms as Platform[], mediaTypes, room.durations)} />
+      <Filter title="How much time do you have?" options={DURATION_BUCKETS} selected={room.durations} labels={DURATION_LABELS} disabled={!isHost} onChange={(durations) => configure(room.platforms, mediaTypes, durations as DurationBucket[])} />
+      {isHost
+        ? <button className="primary sticky-action" disabled={!canStart} onClick={() => emit({ type: "start", memberId })}>{canStart ? `Start swiping · ${room.members.length} people` : `Need at least ${MIN_MEMBERS_TO_START} people`} <Arrow /></button>
+        : <div className="waiting-note"><span className="pulse" /> Waiting for the host to start</div>}
     </main>
   );
 }
@@ -165,21 +211,24 @@ function Filter<T extends string>({ title, options, selected, labels, disabled, 
 }
 
 function SwipeDeck({ room, memberId, emit }: { room: RoomState; memberId: string; emit: (message: ClientMessage) => void }) {
+  const shows = useContext(CatalogContext);
+  const isHost = room.members[0]?.id === memberId;
   const swipes = room.swipes[memberId] ?? {};
   const currentId = room.deck.find((id) => !swipes[id]);
-  const show = currentId ? getShow(currentId) : undefined;
+  const show = currentId ? shows.find((entry) => entry.id === currentId) : undefined;
   const completed = Object.keys(swipes).length;
   const [exit, setExit] = useState<SwipeChoice>();
+  const [showAnalytics, setShowAnalytics] = useState(false);
   const pointerStart = useRef<number | undefined>(undefined);
   const [drag, setDrag] = useState(0);
+  const others = room.members.filter((member) => member.id !== memberId).map((member) => member.name);
 
   useEffect(() => {
-    const upcoming = room.deck.filter((id) => !swipes[id]).slice(0, 4);
+    const upcoming = room.deck.filter((id) => !swipes[id]).slice(0, 5);
     upcoming.forEach((id, index) => {
-      const upcomingShow = getShow(id);
-      if (upcomingShow) preloadImage(posterAssetUrl(upcomingShow.id, "full"), index === 0 ? "high" : "low");
+      if (shows.some((entry) => entry.id === id)) preloadImage(posterAssetUrl(id, "full"), index === 0 ? "high" : "low");
     });
-  }, [currentId, room.deck, swipes]);
+  }, [currentId, room.deck, shows, swipes]);
 
   function swipe(choice: SwipeChoice) {
     if (!show || exit) return;
@@ -194,15 +243,20 @@ function SwipeDeck({ room, memberId, emit }: { room: RoomState; memberId: string
 
   if (!show) return (
     <main className="screen deck-finished">
-      <div className="orbit"><Logo /></div><p className="eyebrow">Deck complete</p><h1>No mutual match yet.</h1><p>Let our edge AI combine both of your tastes and break the tie.</p>
+      <div className="orbit"><Logo /></div><p className="eyebrow">Deck complete</p><h1>No group match yet.</h1><p>Let our edge AI combine everyone's tastes and break the tie.</p>
       <button className="primary" onClick={() => emit({ type: "pick-for-us", memberId })}>Pick for us <Spark /></button>
+      {isHost && <HostAnalytics room={room} />}
     </main>
   );
 
   return (
     <main className="screen swipe-screen">
-      <div className="deck-top"><div><span className="live-dot" /> Live with {room.members.find((member) => member.id !== memberId)?.name}</div></div>
-      <div className="progress"><i style={{ width: `${((completed + 1) / room.deck.length) * 100}%` }} /></div>
+      <div className="deck-top">
+        <div><span className="live-dot" /> Live with {others.length ? others.join(", ") : "your group"}</div>
+        {isHost && <button className="analytics-toggle" onClick={() => setShowAnalytics((value) => !value)}>{showAnalytics ? "Hide votes" : "Host votes"}</button>}
+      </div>
+      <div className="progress"><i style={{ width: `${((completed + 1) / Math.max(room.deck.length, 1)) * 100}%` }} /></div>
+      {isHost && showAnalytics && <HostAnalytics room={room} compact />}
       <div className="card-stack">
         <div className="show-card behind" />
         <article
@@ -217,7 +271,7 @@ function SwipeDeck({ room, memberId, emit }: { room: RoomState; memberId: string
           <Poster show={show} />
           <div className="card-details">
             <div className="title-line"><h2>{show.title}</h2><span>{show.rating.toFixed(1)}</span></div>
-            <p>{show.year} · {show.runtime} min · {PLATFORM_LABELS[show.platform]}</p>
+            <p>{show.year} · {show.runtime} min · {PLATFORM_LABELS[show.platform]} · {MEDIA_TYPE_LABELS[show.mediaType]}</p>
             <div className="tag-row">{show.genres.map((genre) => <span key={genre}>{genre}</span>)}</div>
             <p className="synopsis">{show.synopsis}</p>
           </div>
@@ -229,10 +283,47 @@ function SwipeDeck({ room, memberId, emit }: { room: RoomState; memberId: string
   );
 }
 
+function HostAnalytics({ room, compact = false }: { room: RoomState; compact?: boolean }) {
+  const shows = useContext(CatalogContext);
+  const votedShowIds = [...new Set(Object.values(room.swipes).flatMap((votes) => Object.keys(votes)))]
+    .filter((showId) => room.deck.includes(showId) || Object.values(room.swipes).some((votes) => votes[showId]))
+    .slice(0, compact ? 6 : 20);
+
+  if (!votedShowIds.length) {
+    return <section className={`host-analytics ${compact ? "compact" : ""}`}><p className="panel-label">Host view</p><p>No votes yet. Swipes from the group will appear here.</p></section>;
+  }
+
+  return (
+    <section className={`host-analytics ${compact ? "compact" : ""}`} aria-label="Host swipe analytics">
+      <div className="host-analytics-head"><p className="panel-label">Host only</p><strong>Who voted what</strong></div>
+      <div className="host-analytics-list">
+        {votedShowIds.map((showId) => {
+          const show = shows.find((entry) => entry.id === showId);
+          return (
+            <article key={showId} className="host-vote-row">
+              <div>
+                <strong>{show?.title ?? showId}</strong>
+                <span>{show ? `${PLATFORM_LABELS[show.platform]} · ${MEDIA_TYPE_LABELS[show.mediaType]}` : "Title"}</span>
+              </div>
+              <ul>
+                {room.members.map((member) => {
+                  const vote = room.swipes[member.id]?.[showId];
+                  return <li key={member.id} className={vote ?? "pending"}><span>{member.name}</span><em>{vote === "like" ? "Like" : vote === "pass" ? "Pass" : "—"}</em></li>;
+                })}
+              </ul>
+            </article>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 function Result({ room, memberId, emit }: { room: RoomState; memberId: string; emit: (message: ClientMessage) => void }) {
   const recommendation = room.recommendation;
-  const show = recommendation ? getShow(recommendation.showId) : room.matchedShowId ? getShow(room.matchedShowId) : undefined;
+  const show = useShow(recommendation?.showId ?? room.matchedShowId);
   const matched = room.status === "matched";
+  const isHost = room.members[0]?.id === memberId;
   const playedSound = useRef(false);
 
   useEffect(() => {
@@ -246,15 +337,16 @@ function Result({ room, memberId, emit }: { room: RoomState; memberId: string; e
   return (
     <main className="screen result-screen">
       <Confetti />
-      <p className="eyebrow">{matched ? "You both said yes" : "ShowMate pick"}</p>
+      <p className="eyebrow">{matched ? (room.members.length > 2 ? "The group said yes" : "You both said yes") : "ShowMate pick"}</p>
       <h1>{matched ? "It's a match." : "We found your middle ground."}</h1>
       <div className="result-poster"><Poster show={show} /><div className="match-badge"><Heart /> {matched ? "MATCH" : "FOR YOU"}</div></div>
-      <div className="result-copy"><span>{PLATFORM_LABELS[show.platform]} · {show.runtime} min</span><h2>{show.title}</h2><p>{recommendation?.reason ?? "You both picked it. Tonight's decision is settled."}</p></div>
+      <div className="result-copy"><span>{PLATFORM_LABELS[show.platform]} · {show.runtime} min · {MEDIA_TYPE_LABELS[show.mediaType]}</span><h2>{show.title}</h2><p>{recommendation?.reason ?? (room.members.length > 2 ? "Everyone picked it. Tonight's decision is settled." : "You both picked it. Tonight's decision is settled.")}</p></div>
       <div className="result-actions">
         <a className="primary watch-link" href={show.watchUrl} target="_blank" rel="noreferrer">Watch on {PLATFORM_LABELS[show.platform]} <Arrow /></a>
         {matched && <button className="continue-button" onClick={() => emit({ type: "continue", memberId })}>Keep swiping</button>}
       </div>
-      <small>Room {room.code} · Powered by Cloudflare's edge · Posters via TVmaze</small>
+      {isHost && <HostAnalytics room={room} />}
+      <small>Room {room.code} · Powered by Cloudflare's edge</small>
     </main>
   );
 }
@@ -288,7 +380,7 @@ function LoadingRoom({ code, connected }: { code: string; connected: boolean }) 
 }
 
 function FullRoom({ code }: { code: string }) {
-  return <main className="screen loading"><Logo /><h2>This match is taken.</h2><p>Room {code} already has two people.</p><a href="/">Create another room</a></main>;
+  return <main className="screen loading"><Logo /><h2>This room is full.</h2><p>Room {code} already has {MAX_MEMBERS} people.</p><a href="/">Create another room</a></main>;
 }
 
 function Avatar({ name }: { name?: string }) {

@@ -11,53 +11,57 @@ interface TextResponse {
   response?: string;
 }
 
-export async function ensureCatalogVectors(env: Env, showIds: string[]): Promise<void> {
-  const version = "catalog-v1";
+export async function ensureCatalogVectors(env: Env, shows: Show[]): Promise<void> {
+  if (!shows.length) return;
+  const version = `catalog-v3:${shows.map((show) => show.id).sort().join(",")}`.slice(0, 200);
   if (await env.CACHE.get(`vectors:${version}`)) return;
-  const shows = showIds.map(getShow).filter((show): show is Show => Boolean(show));
   const response = await env.AI.run("@cf/baai/bge-base-en-v1.5", {
     text: shows.map(showText),
   }) as EmbeddingResponse;
   await env.SHOW_VECTORS.upsert(shows.map((show, index) => ({
     id: show.id,
     values: response.data[index],
-    metadata: { platform: show.platform, title: show.title },
+    metadata: { platform: show.platform, title: show.title, mediaType: show.mediaType },
   })));
   await env.CACHE.put(`vectors:${version}`, "ready", { expirationTtl: 86400 });
 }
 
-export async function similarShowIds(env: Env, showId: string): Promise<string[]> {
-  const cacheKey = `similar:${showId}`;
+export async function similarShowIds(env: Env, show: Show): Promise<string[]> {
+  const cacheKey = `similar:v3:${show.id}`;
   const cached = await env.CACHE.get<string[]>(cacheKey, "json");
   if (cached) return cached;
-  const show = getShow(showId);
-  if (!show) return [];
   const response = await env.AI.run("@cf/baai/bge-base-en-v1.5", { text: [showText(show)] }) as EmbeddingResponse;
-  const result = await env.SHOW_VECTORS.query(response.data[0], { topK: 8, returnMetadata: "indexed" });
-  const ids = result.matches.map((match) => match.id).filter((id) => id !== showId);
+  const result = await env.SHOW_VECTORS.query(response.data[0], { topK: 12, returnMetadata: "indexed" });
+  const ids = result.matches.map((match) => match.id).filter((id) => id !== show.id);
   await env.CACHE.put(cacheKey, JSON.stringify(ids), { expirationTtl: 3600 });
   return ids;
 }
 
-export async function matchReason(env: Env, showId: string): Promise<string> {
-  const cacheKey = `match-reason:${showId}`;
+export async function matchReason(env: Env, show: Show, memberCount: number): Promise<string> {
+  const cacheKey = `match-reason:v3:${show.id}:${memberCount}`;
   const cached = await env.CACHE.get(cacheKey);
   if (cached) return cached;
-  const show = getShow(showId);
-  if (!show) return "You both picked it. That is all the proof you need.";
+  const audience = memberCount > 2 ? `a group of ${memberCount}` : "a couple";
+  const kind = show.mediaType === "movie" ? "movie" : "show";
   const result = await env.AI.run("@cf/meta/llama-3.1-8b-instruct", {
-    prompt: `Write one playful sentence, under 24 words, explaining why a couple should watch ${show.title}, a ${show.genres.join(" and ")} show. Return only the sentence.`,
+    prompt: `Write one playful sentence, under 24 words, explaining why ${audience} should watch ${show.title}, a ${show.genres.join(" and ")} ${kind}. Return only the sentence.`,
     max_tokens: 64,
   }) as TextResponse;
-  const reason = result.response?.trim() || `You both chose ${show.title}, so tonight's decision is officially settled.`;
+  const reason = result.response?.trim()
+    || (memberCount > 2
+      ? `The whole group chose ${show.title}, so tonight's watch is settled.`
+      : `You both chose ${show.title}, so tonight's decision is officially settled.`);
   await env.CACHE.put(cacheKey, reason, { expirationTtl: 86400 });
   return reason;
 }
 
-export async function compromisePick(env: Env, state: RoomState): Promise<{ showId: string; reason: string }> {
+export async function compromisePick(env: Env, state: RoomState, shows: Show[]): Promise<{ showId: string; reason: string }> {
+  const byId = new Map(shows.map((show) => [show.id, show]));
   const liked = likedShowIds(state);
-  const candidates = (liked.length ? liked : state.deck).map(getShow).filter((show): show is Show => Boolean(show));
-  const prompt = `Choose one show that best bridges two people's tastes. Return strict JSON with showId and a playful reason under 24 words. You may only choose from: ${candidates.map((show) => `${show.id} (${show.genres.join(", ")})`).join("; ")}.`;
+  const candidates = (liked.length ? liked : state.deck)
+    .map((id) => byId.get(id) ?? getShow(id))
+    .filter((show): show is Show => Boolean(show));
+  const prompt = `Choose one title that best bridges a group's tastes. Return strict JSON with showId and a playful reason under 24 words. You may only choose from: ${candidates.map((show) => `${show.id} (${show.genres.join(", ")})`).join("; ")}.`;
 
   try {
     const result = await env.AI.run("@cf/meta/llama-3.1-8b-instruct", { prompt, max_tokens: 120 }) as TextResponse;
@@ -71,7 +75,7 @@ export async function compromisePick(env: Env, state: RoomState): Promise<{ show
 }
 
 function showText(show: Show): string {
-  return `${show.title}. ${show.genres.join(", ")}. ${show.synopsis} ${show.runtime} minute episodes.`;
+  return `${show.title}. ${show.mediaType}. ${show.genres.join(", ")}. ${show.synopsis} ${show.runtime} minutes.`;
 }
 
 function parseAiJson(value: string): { showId: string; reason: string } {
@@ -82,5 +86,5 @@ function parseAiJson(value: string): { showId: string; reason: string } {
 
 function fallbackPick(candidates: Show[]): { showId: string; reason: string } {
   const show = [...candidates].sort((a, b) => b.popularity - a.popularity)[0] ?? catalog[0];
-  return { showId: show.id, reason: `${show.title} is the crowd-pleasing bridge between both of your watchlists.` };
+  return { showId: show.id, reason: `${show.title} is the crowd-pleasing bridge across the room's watchlists.` };
 }
