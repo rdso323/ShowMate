@@ -56,16 +56,37 @@ async function posterResponse(url: URL, env: Env, ctx: ExecutionContext): Promis
 
   const shows = await getCatalog(env);
   const show = shows.find((entry) => entry.id === showId) ?? getShow(showId);
-  if (!show) return new Response("Poster not found", { status: 404 });
+  if (!show?.posterUrl) return new Response("Poster not found", { status: 404 });
 
   const size = url.searchParams.get("size") === "thumbnail" ? "thumbnail" : "full";
-  const cacheKey = `poster:v2:${show.id}:${size}`;
+  const cacheKey = `poster:v3:${show.id}:${size}`;
   const cached = await env.CACHE.get(cacheKey, "arrayBuffer");
   if (cached) return imageResponse(cached, "KV");
 
   const sourceUrl = posterSourceUrl(show, size);
-  const upstream = await fetch(sourceUrl);
-  if (!upstream.ok) return new Response("Poster unavailable", { status: 502 });
+  const upstream = await fetch(sourceUrl, {
+    headers: {
+      "User-Agent": "ShowMate/1.0 (+https://showmate.workers.dev)",
+      Accept: "image/avif,image/webp,image/apng,image/*,*/*;q=0.8",
+    },
+  });
+  if (!upstream.ok) {
+    // Fall back to the raw stored URL once before failing.
+    if (sourceUrl !== show.posterUrl) {
+      const retry = await fetch(show.posterUrl, {
+        headers: {
+          "User-Agent": "ShowMate/1.0 (+https://showmate.workers.dev)",
+          Accept: "image/avif,image/webp,image/apng,image/*,*/*;q=0.8",
+        },
+      });
+      if (retry.ok) {
+        const image = await retry.arrayBuffer();
+        ctx.waitUntil(env.CACHE.put(cacheKey, image));
+        return imageResponse(image, "UPSTREAM-FALLBACK", retry.headers.get("Content-Type") ?? "image/jpeg");
+      }
+    }
+    return new Response("Poster unavailable", { status: 502 });
+  }
 
   const image = await upstream.arrayBuffer();
   ctx.waitUntil(env.CACHE.put(cacheKey, image));

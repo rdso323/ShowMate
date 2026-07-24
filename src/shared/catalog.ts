@@ -52,7 +52,7 @@ export const catalog: Show[] = [
     "synopsis": "Moana sets sail on an expansive new voyage after receiving an unexpected call from her wayfinding ancestors.",
     "popularity": 99,
     "accent": "#4f8fd3",
-    "posterUrl": "https://m.media-amazon.com/images/M/MV5BZDUxNThhYTUtYjgxNy00MGQ4LTgzOTEtZjg1YTU5NTcwNThlXkEyXkFqcGc@._V1_SX600.jpg",
+    "posterUrl": "https://image.tmdb.org/t/p/original/aLVkiINlIeCkcZIzb7XHzPYgO6L.jpg",
     "watchUrl": "https://www.disneyplus.com/"
   },
   {
@@ -88,7 +88,7 @@ export const catalog: Show[] = [
     "synopsis": "A former Marine faces off against a corrupt small-town police force after they seize his cash.",
     "popularity": 98,
     "accent": "#c45c26",
-    "posterUrl": "https://m.media-amazon.com/images/M/MV5BYTE4ZDE5ZTktZWZkMC00MGY4LWFkZDUtZTc5YWU3NzM2YmM3XkEyXkFqcGc@._V1_SX600.jpg",
+    "posterUrl": "https://image.tmdb.org/t/p/original/doDGKoQzNFBnz0pYol2lkabdmFJ.jpg",
     "watchUrl": "https://www.netflix.com/"
   },
   {
@@ -106,7 +106,7 @@ export const catalog: Show[] = [
     "synopsis": "An ex-UFC fighter takes a bouncer job in the Florida Keys and finds more trouble than expected.",
     "popularity": 98,
     "accent": "#bd594f",
-    "posterUrl": "https://m.media-amazon.com/images/M/MV5BODVkYjlkM2UtNWVlMS00N2U1LTgxOTYtODlmNmE1YTgzMjczXkEyXkFqcGc@._V1_SX600.jpg",
+    "posterUrl": "https://image.tmdb.org/t/p/original/sH7Orig1yqa6ojMLIzLDxA2GRkH.jpg",
     "watchUrl": "https://www.primevideo.com/"
   },
   {
@@ -124,7 +124,7 @@ export const catalog: Show[] = [
     "synopsis": "Two people fake a relationship after a disastrous first date, then get stuck together on a dream vacation.",
     "popularity": 97,
     "accent": "#59624a",
-    "posterUrl": "https://m.media-amazon.com/images/M/MV5BZWUxYTFhMzItMmE0ZC00ODgzLTkwZWItOGUwMTI1YjQwMDJjXkEyXkFqcGc@._V1_SX600.jpg",
+    "posterUrl": "https://image.tmdb.org/t/p/original/5qHoazZiaLe7oFBok7XlUhg96f2.jpg",
     "watchUrl": "https://www.netflix.com/"
   },
   {
@@ -160,7 +160,7 @@ export const catalog: Show[] = [
     "synopsis": "Young Willy Wonka embarks on a magical adventure to change the world with pure imagination.",
     "popularity": 97,
     "accent": "#dcae46",
-    "posterUrl": "https://m.media-amazon.com/images/M/MV5BM2Y1N2ZhNjctYjVhZC00MDg2LWFhNTItMzI3ZjAwZDhjYmFiXkEyXkFqcGc@._V1_SX600.jpg",
+    "posterUrl": "https://image.tmdb.org/t/p/original/qhb1qOilapbapxWQn9jtRCMwXJF.jpg",
     "watchUrl": "https://www.max.com/"
   },
   {
@@ -196,7 +196,7 @@ export const catalog: Show[] = [
     "synopsis": "Tyler Rake returns for a deadlier extraction mission that pulls him into a prison fortress.",
     "popularity": 96,
     "accent": "#667877",
-    "posterUrl": "https://m.media-amazon.com/images/M/MV5BZGQwNDdhODAtY2Y0Ni00YzFhLTk1OGUtY2RkMDAzNzBmZjAxXkEyXkFqcGc@._V1_SX600.jpg",
+    "posterUrl": "https://image.tmdb.org/t/p/original/7gKI9hpEMcZUQpNgKrkDzJpbnNS.jpg",
     "watchUrl": "https://www.netflix.com/"
   },
   {
@@ -214,7 +214,7 @@ export const catalog: Show[] = [
     "synopsis": "A 40-year-old single mom begins an unexpected romance with a world-famous boy-band singer.",
     "popularity": 96,
     "accent": "#8b3c32",
-    "posterUrl": "https://image.tmdb.org/t/p/original/z1p34vh7dEOnLDmyCrlUVLuoDzd.jpg",
+    "posterUrl": "https://image.tmdb.org/t/p/original/w46Vw536HwNnEzOa7J24YH9DPRS.jpg",
     "watchUrl": "https://www.primevideo.com/"
   },
   {
@@ -268,7 +268,7 @@ export const catalog: Show[] = [
     "synopsis": "A family's vacation rental weekend collapses into dread when a massive blackout hits.",
     "popularity": 95,
     "accent": "#1f8a70",
-    "posterUrl": "https://m.media-amazon.com/images/M/MV5BZjI0YzhjZjAtMzg3ZS00NTFhLWFkYjctMjE5ZGExNTk1MmJkXkEyXkFqcGc@._V1_SX600.jpg",
+    "posterUrl": "https://image.tmdb.org/t/p/original/kdPMUMJzyYAc4roD52qavX0nLIC.jpg",
     "watchUrl": "https://www.netflix.com/"
   },
   {
@@ -285,7 +285,7 @@ export const catalog: Show[] = [
     "synopsis": "Nike races to sign a rookie named Michael Jordan and change sports marketing forever.",
     "popularity": 94,
     "accent": "#b93631",
-    "posterUrl": "https://m.media-amazon.com/images/M/MV5BNjdjYzJkZmUtZDNiMC00MzQ0LWE2MGEtYTk4ZGM4NzFkMzM3XkEyXkFqcGc@._V1_SX600.jpg",
+    "posterUrl": "https://image.tmdb.org/t/p/original/lZOODJzwuQo0etJJyBBZJOSdZcW.jpg",
     "watchUrl": "https://www.primevideo.com/"
   },
   {
@@ -322,7 +322,7 @@ export const catalog: Show[] = [
     "synopsis": "Detective Benoit Blanc returns for a new murder mystery among tech billionaires on a private island.",
     "popularity": 94,
     "accent": "#667877",
-    "posterUrl": "https://m.media-amazon.com/images/M/MV5BMzI2ZDYxZTEtMzVlOC00OTUyLTgyNTAtYWFhNmRhZjAzZWE1XkEyXkFqcGc@._V1_SX600.jpg",
+    "posterUrl": "https://image.tmdb.org/t/p/original/vDGr1YdrlfbU9wxTOdpf3zChmv9.jpg",
     "watchUrl": "https://www.netflix.com/"
   },
   {
@@ -358,7 +358,7 @@ export const catalog: Show[] = [
     "synopsis": "An FBI profiler chases the world's most wanted art thief across a globe-spanning heist.",
     "popularity": 93,
     "accent": "#59624a",
-    "posterUrl": "https://m.media-amazon.com/images/M/MV5BOGNjNGQ3MmItYTM5NS00NjBiLWI0ZTItZDE5ZjQyNjg3ODBjXkEyXkFqcGc@._V1_SX600.jpg",
+    "posterUrl": "https://image.tmdb.org/t/p/original/lAXONuqg41NwUMuzMiFvicDET9Y.jpg",
     "watchUrl": "https://www.netflix.com/"
   },
   {
@@ -376,7 +376,7 @@ export const catalog: Show[] = [
     "synopsis": "A jazz musician's soul gets stuck between Earth and the afterlife after a near-death accident.",
     "popularity": 93,
     "accent": "#4f8fd3",
-    "posterUrl": "https://image.tmdb.org/t/p/original/hm58Jw4Lw8OIeECIq5qyPYhAeRJ.jpg",
+    "posterUrl": "https://image.tmdb.org/t/p/original/6jmppcaubzLF8wkXM36ganVISCo.jpg",
     "watchUrl": "https://www.disneyplus.com/"
   },
   {
@@ -394,7 +394,7 @@ export const catalog: Show[] = [
     "synopsis": "Two astronomers try to warn humanity about an approaching comet that will destroy Earth.",
     "popularity": 92,
     "accent": "#d58aa5",
-    "posterUrl": "https://m.media-amazon.com/images/M/MV5BMjhhNWFjNzctYTJjOS00MDc0LThiNjItZmM0ZDVmMWViY2UzXkEyXkFqcGc@._V1_QL75_UY562_CR35,0,380,562_.jpg",
+    "posterUrl": "https://image.tmdb.org/t/p/original/nD4M4Bx457ryLuKYpxFwQ2IBJ5w.jpg",
     "watchUrl": "https://www.netflix.com/"
   },
   {
@@ -412,7 +412,7 @@ export const catalog: Show[] = [
     "synopsis": "The life of Elvis Presley is seen through the prism of his complicated relationship with Colonel Tom Parker.",
     "popularity": 92,
     "accent": "#2f6fed",
-    "posterUrl": "https://m.media-amazon.com/images/M/MV5BNTVhZmUyMDQtY2I5Ny00OWNiLTgzNjUtMTg4YTQwMTc0OTQxXkEyXkFqcGc@._V1_SX600.jpg",
+    "posterUrl": "https://image.tmdb.org/t/p/original/qBOKWqAFbveZ4ryjJJwbie6tXkQ.jpg",
     "watchUrl": "https://www.max.com/"
   },
   {
@@ -430,7 +430,7 @@ export const catalog: Show[] = [
     "synopsis": "A sea monster boy experiences an unforgettable summer on the Italian Riviera.",
     "popularity": 92,
     "accent": "#4f8fd3",
-    "posterUrl": "https://image.tmdb.org/t/p/original/jTswp6KyDYKtvC52GbHagrZbGvD.jpg",
+    "posterUrl": "https://image.tmdb.org/t/p/original/9x4i9uKGXt8IiiIF5Ey0DIoY738.jpg",
     "watchUrl": "https://www.disneyplus.com/"
   },
   {
@@ -448,7 +448,7 @@ export const catalog: Show[] = [
     "synopsis": "A New York professor discovers her boyfriend comes from Singapore's wealthiest family.",
     "popularity": 91,
     "accent": "#dcae46",
-    "posterUrl": "https://m.media-amazon.com/images/M/MV5BMTYxNDMyOTAxN15BMl5BanBnXkFtZTgwMDg1ODYzNTM@._V1_SX600.jpg",
+    "posterUrl": "https://image.tmdb.org/t/p/original/1XxL4LJ5WHdrcYcihEZUCgNCpAW.jpg",
     "watchUrl": "https://www.max.com/"
   },
   {
@@ -466,7 +466,7 @@ export const catalog: Show[] = [
     "synopsis": "A thirteen-year-old girl turns into a giant red panda whenever she gets too excited.",
     "popularity": 91,
     "accent": "#2f6fed",
-    "posterUrl": "https://m.media-amazon.com/images/M/MV5BODY2NjExYmUtZTQ4NS00NzM2LWE2NWYtZWY2NGIyOTBmNzI3XkEyXkFqcGc@._V1_SX600.jpg",
+    "posterUrl": "https://image.tmdb.org/t/p/original/qsdjk9oAKSQMWs0Vt5Pyfh6O4GZ.jpg",
     "watchUrl": "https://www.disneyplus.com/"
   },
   {
@@ -484,7 +484,7 @@ export const catalog: Show[] = [
     "synopsis": "A seasoned musician helps a young singer find fame as his own career begins to fade.",
     "popularity": 90,
     "accent": "#3d775d",
-    "posterUrl": "https://m.media-amazon.com/images/M/MV5BNGUxZTc0NTAtNzQwMy00MmM2LTgzMGYtZWIyY2E1MGFjYmM5XkEyXkFqcGc@._V1_SX600.jpg",
+    "posterUrl": "https://image.tmdb.org/t/p/original/wrFpXMNBRj2PBiN4Z5kix51XaIZ.jpg",
     "watchUrl": "https://www.max.com/"
   },
   {
@@ -502,7 +502,7 @@ export const catalog: Show[] = [
     "synopsis": "A bank teller discovers he's a background character in an open-world video game.",
     "popularity": 90,
     "accent": "#d58aa5",
-    "posterUrl": "https://image.tmdb.org/t/p/original/xmbU4JTUm8rsdtn7Y3Fcm30GpeT.jpg",
+    "posterUrl": "https://image.tmdb.org/t/p/original/dxraF0qPr1OEgJk17ltQTO84kQF.jpg",
     "watchUrl": "https://www.disneyplus.com/"
   },
   {
@@ -520,7 +520,7 @@ export const catalog: Show[] = [
     "synopsis": "A time-traveling fighter pilot teams up with his younger self to save the future.",
     "popularity": 90,
     "accent": "#1f8a70",
-    "posterUrl": "https://m.media-amazon.com/images/M/MV5BNWU1NDJlYWUtYWE1OC00MGVlLTliNzYtMjg4OTk0MWE4MDQ4XkEyXkFqcGc@._V1_QL75_UY562_CR0,0,380,562_.jpg",
+    "posterUrl": "https://image.tmdb.org/t/p/original/edKpE9B5qN3e559OuMCLZdW1iBZ.jpg",
     "watchUrl": "https://www.netflix.com/"
   },
   {
@@ -538,7 +538,7 @@ export const catalog: Show[] = [
     "synopsis": "A woman faces hardship and finds sisterhood and self-worth in the American South.",
     "popularity": 90,
     "accent": "#bd3b6d",
-    "posterUrl": "https://m.media-amazon.com/images/M/MV5BYzg2ZGEzZjItZWY3Ni00MTFjLTk3ZmEtZTE1OGFmOTkzM2I4XkEyXkFqcGc@._V1_SX600.jpg",
+    "posterUrl": "https://image.tmdb.org/t/p/original/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg",
     "watchUrl": "https://www.max.com/"
   },
   {
@@ -556,7 +556,7 @@ export const catalog: Show[] = [
     "synopsis": "Civilians are drafted to fight an alien war in the future that threatens humanity.",
     "popularity": 90,
     "accent": "#59624a",
-    "posterUrl": "https://m.media-amazon.com/images/M/MV5BYmUyNzY2YWYtNWQ0My00ODMwLTkwOTQtOTA0ZjM0MjRmYjJiXkEyXkFqcGc@._V1_SX600.jpg",
+    "posterUrl": "https://image.tmdb.org/t/p/original/34nDCQZwaEvsy4CFO5hkGRFDCVU.jpg",
     "watchUrl": "https://www.primevideo.com/"
   },
   {
@@ -574,7 +574,7 @@ export const catalog: Show[] = [
     "synopsis": "Aquaman must forge an uneasy alliance to protect Atlantis from Black Manta.",
     "popularity": 89,
     "accent": "#bd594f",
-    "posterUrl": "https://m.media-amazon.com/images/M/MV5BYjQ1ZTUzMWMtY2VkNS00ZDRjLWEwODYtYmFkMWJiNTQxMDUzXkEyXkFqcGc@._V1_SX600.jpg",
+    "posterUrl": "https://image.tmdb.org/t/p/original/7lTnXOy0iNtBAdRP3TZvaKJ77F6.jpg",
     "watchUrl": "https://www.max.com/"
   },
   {
@@ -648,7 +648,7 @@ export const catalog: Show[] = [
     "synopsis": "A CIA assassin becomes the target when he uncovers dark agency secrets.",
     "popularity": 89,
     "accent": "#dcae46",
-    "posterUrl": "https://m.media-amazon.com/images/M/MV5BZmFhZTNlNzctZGQzZi00MTA3LThiNjMtYWQzNjUzMjNjZjA3XkEyXkFqcGc@._V1_SX600.jpg",
+    "posterUrl": "https://image.tmdb.org/t/p/original/8cXbitsS6dWQ5gfMTZdorpAAzEH.jpg",
     "watchUrl": "https://www.netflix.com/"
   },
   {
@@ -758,7 +758,7 @@ export const catalog: Show[] = [
     "synopsis": "A heavy-metal drummer's life unravels when he begins to lose his hearing.",
     "popularity": 88,
     "accent": "#8b3c32",
-    "posterUrl": "https://m.media-amazon.com/images/M/MV5BMWE5ZmYwNDEtYTYwMS00MTc0LTk2ZWItZTM1MjQ1ZDYzZGUzXkEyXkFqcGc@._V1_SX600.jpg",
+    "posterUrl": "https://image.tmdb.org/t/p/original/8MaNntHfJPNRPJGSHo4NOmEOvVA.jpg",
     "watchUrl": "https://www.primevideo.com/"
   },
   {
@@ -813,7 +813,7 @@ export const catalog: Show[] = [
     "synopsis": "Barry Allen travels through time to prevent his mother's murder and fractures the multiverse.",
     "popularity": 88,
     "accent": "#df4c42",
-    "posterUrl": "https://m.media-amazon.com/images/M/MV5BYmE2NzBjNGUtNTJiMy00N2UxLWEyYzMtYzFjODFhMGZlOTgzXkEyXkFqcGc@._V1_SX600.jpg",
+    "posterUrl": "https://image.tmdb.org/t/p/original/rktDFPbfHfUbArZ6OOOKsXcv0Bm.jpg",
     "watchUrl": "https://www.max.com/"
   },
   {
@@ -830,7 +830,7 @@ export const catalog: Show[] = [
     "synopsis": "Twenty-seven years after their first encounter, the Losers Club reunites to destroy Pennywise.",
     "popularity": 87,
     "accent": "#bd3b6d",
-    "posterUrl": "https://m.media-amazon.com/images/M/MV5BYzUxM2VhOGItZTY2My00OTA4LWI4NjUtMDA5YWJjM2M2NDJjXkEyXkFqcGc@._V1_SX600.jpg",
+    "posterUrl": "https://image.tmdb.org/t/p/original/zfE0R94v1E8cuKAerbskfD3VfUt.jpg",
     "watchUrl": "https://www.max.com/"
   },
   {
@@ -886,7 +886,7 @@ export const catalog: Show[] = [
     "synopsis": "A Navy SEAL seeks justice after his pregnant wife is murdered in a home invasion.",
     "popularity": 87,
     "accent": "#d58aa5",
-    "posterUrl": "https://m.media-amazon.com/images/M/MV5BNzE0NjU1MmUtZWUzMS00ZWRiLWE5ZjYtODk3NmRlMmExYWI1XkEyXkFqcGc@._V1_SX600.jpg",
+    "posterUrl": "https://image.tmdb.org/t/p/original/nkayOAUBUu4mMvyNf9iHSUiPjF1.jpg",
     "watchUrl": "https://www.primevideo.com/"
   },
   {
@@ -941,7 +941,7 @@ export const catalog: Show[] = [
     "synopsis": "Two strangers dumped on the same day team up to win their exes back.",
     "popularity": 86,
     "accent": "#b93631",
-    "posterUrl": "https://m.media-amazon.com/images/M/MV5BM2NhNWRkNDYtM2QzOS00YzZjLTlmNTEtNDgyNDlhN2Y4MGVmXkEyXkFqcGc@._V1_SX600.jpg",
+    "posterUrl": "https://image.tmdb.org/t/p/original/jQ0gylJMxWSL490sy0RrPj1Lj7e.jpg",
     "watchUrl": "https://www.primevideo.com/"
   },
   {
@@ -959,7 +959,7 @@ export const catalog: Show[] = [
     "synopsis": "A hardened CIA operative is blackmailed by a nine-year-old into teaching her spy skills.",
     "popularity": 86,
     "accent": "#d6653d",
-    "posterUrl": "https://m.media-amazon.com/images/M/MV5BNDBiMDRkNmUtMzBmYy00NGM1LTgyNmMtMzBmNTg4Y2FhOGE4XkEyXkFqcGc@._V1_SX600.jpg",
+    "posterUrl": "https://image.tmdb.org/t/p/original/t4BtVY9IcGR1k8c3GNYTTLYebOw.jpg",
     "watchUrl": "https://www.primevideo.com/"
   },
   {
@@ -1033,7 +1033,7 @@ export const catalog: Show[] = [
     "synopsis": "Prince Akeem returns to America to find an unexpected heir to the throne of Zamunda.",
     "popularity": 85,
     "accent": "#d6653d",
-    "posterUrl": "https://m.media-amazon.com/images/M/MV5BN2NhODZjMTktOGNmOC00OTllLTk3NWItYzNiNmRlNTYwMTcxXkEyXkFqcGc@._V1_SX600.jpg",
+    "posterUrl": "https://image.tmdb.org/t/p/original/nWBPLkqNApY5pgrJFMiI9joSI30.jpg",
     "watchUrl": "https://www.primevideo.com/"
   },
   {
@@ -1198,7 +1198,7 @@ export const catalog: Show[] = [
     "synopsis": "Four icons of the 1960s spend one night debating fame, faith, and the fight for justice.",
     "popularity": 84,
     "accent": "#4d9f99",
-    "posterUrl": "https://m.media-amazon.com/images/M/MV5BODRhN2U5OTAtYzlkYi00MGM5LWFmYjctZTRkODllZGM5YThlXkEyXkFqcGc@._V1_SX600.jpg",
+    "posterUrl": "https://image.tmdb.org/t/p/original/exWchxfoLn4gmNZ53vFF4htqkvG.jpg",
     "watchUrl": "https://www.primevideo.com/"
   },
   {

@@ -2,7 +2,7 @@ import { catalog as seedCatalog } from "../shared/catalog";
 import type { Show } from "../shared/types";
 import type { Env } from "./env";
 
-const CATALOG_CACHE_KEY = "catalog:v3";
+const CATALOG_CACHE_KEY = "catalog:v4";
 
 export async function getCatalog(env: Env): Promise<Show[]> {
   const cached = await env.CACHE.get<Show[]>(CATALOG_CACHE_KEY, "json");

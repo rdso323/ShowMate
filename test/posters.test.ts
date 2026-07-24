@@ -33,12 +33,12 @@ describe("posterSourceUrl", () => {
     expect(posterSourceUrl(show, "full")).toContain("/original_untouched/");
   });
 
-  it("sizes Amazon cover art for thumbnail and full posters", () => {
+  it("maps Amazon cover art through without brittle size rewriting", () => {
     const show = {
       ...base,
       posterUrl: "https://m.media-amazon.com/images/M/MV5BTest.jpg._V1_SX600.jpg",
     };
-    expect(posterSourceUrl(show, "thumbnail")).toContain("_V1_SX300.jpg");
-    expect(posterSourceUrl(show, "full")).toContain("_V1_SX600.jpg");
+    expect(posterSourceUrl(show, "thumbnail")).toBe(show.posterUrl);
+    expect(posterSourceUrl(show, "full")).toBe(show.posterUrl);
   });
 });
