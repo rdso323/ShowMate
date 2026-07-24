@@ -83,6 +83,7 @@ export async function syncCatalogFromTmdb(env: Env): Promise<{ upserted: number;
   const candidates = [...withRuntime, ...remainder];
   // Never persist a title whose poster cannot be fetched from TMDB's CDN.
   const verified = await filterShowsWithReachablePosters(candidates);
+  const skippedMissingPoster = candidates.length - verified.length;
   if (!verified.length) {
     return { upserted: 0, skipped: true, reason: "TMDB sync produced no titles with reachable cover art" };
   }
@@ -90,7 +91,13 @@ export async function syncCatalogFromTmdb(env: Env): Promise<{ upserted: number;
   await env.CACHE.put("catalog-sync:last", new Date().toISOString(), { expirationTtl: 60 * 60 * 24 * 14 });
   await env.CACHE.put(
     "catalog-sync:stats",
-    JSON.stringify({ at: new Date().toISOString(), collected: shows.length, verified: verified.length }),
+    JSON.stringify({
+      at: new Date().toISOString(),
+      collected: shows.length,
+      candidates: candidates.length,
+      verified: verified.length,
+      skippedMissingPoster,
+    }),
     { expirationTtl: 60 * 60 * 24 * 14 },
   );
   return { upserted, skipped: false };
@@ -137,7 +144,8 @@ async function enrichRuntimes(apiKey: string, shows: Show[]): Promise<Show[]> {
   return enriched;
 }
 
-function toShow(
+/** Exported for unit tests: drop TMDB rows that lack a usable poster path. */
+export function toShow(
   item: TmdbListItem,
   mediaType: MediaType,
   platform: Platform,
@@ -145,10 +153,11 @@ function toShow(
   trending: boolean,
 ): Show | undefined {
   const title = (item.title || item.name || "").trim();
-  const posterPath = item.poster_path?.trim();
+  const rawPoster = item.poster_path?.trim();
   // TMDB list endpoints omit poster_path when no art exists — drop those titles entirely.
-  if (!title || !posterPath || posterPath === "null" || !item.overview) return undefined;
-  if (!posterPath.startsWith("/")) return undefined;
+  if (!title || !rawPoster || rawPoster === "null" || !item.overview) return undefined;
+  if (!rawPoster.startsWith("/")) return undefined;
+  const posterPath = rawPoster;
   const year = Number(((item.release_date || item.first_air_date || "2024").slice(0, 4)));
   const id = `${slugify(title)}-${mediaType === "movie" ? "m" : "t"}${item.id}`;
   return {
@@ -168,7 +177,8 @@ function toShow(
   };
 }
 
-async function filterShowsWithReachablePosters(shows: Show[]): Promise<Show[]> {
+/** Exported for unit tests: only keep shows whose poster URL returns an image. */
+export async function filterShowsWithReachablePosters(shows: Show[]): Promise<Show[]> {
   const verified: Show[] = [];
   const chunkSize = 12;
   for (let index = 0; index < shows.length; index += chunkSize) {
@@ -184,7 +194,7 @@ async function filterShowsWithReachablePosters(shows: Show[]): Promise<Show[]> {
   return verified;
 }
 
-async function posterIsReachable(posterUrl: string): Promise<boolean> {
+export async function posterIsReachable(posterUrl: string): Promise<boolean> {
   try {
     // Check the display size the app actually serves first.
     const sized = posterUrl.replace("/original/", "/w342/");
