@@ -124,3 +124,15 @@ export function publicRoomState(state: RoomState, memberId: string): RoomState {
     swipes: { [memberId]: state.swipes[memberId] ?? {} },
   };
 }
+
+export function removeMember(state: RoomState, targetId: string): RoomState {
+  if (!state.members.some((member) => member.id === targetId)) return state;
+  if (state.members[0]?.id === targetId) return state;
+
+  const { [targetId]: _removed, ...swipes } = state.swipes;
+  return {
+    ...state,
+    members: state.members.filter((member) => member.id !== targetId),
+    swipes,
+  };
+}

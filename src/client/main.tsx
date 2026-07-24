@@ -38,6 +38,7 @@ function App() {
   const [error, setError] = useState("");
   const [connected, setConnected] = useState(false);
   const [shows, setShows] = useState<Show[]>(seedCatalog);
+  const [leavePromptOpen, setLeavePromptOpen] = useState(false);
 
   useEffect(() => {
     sessionStorage.setItem("showmate:member", memberId);
@@ -75,6 +76,10 @@ function App() {
       const message = JSON.parse(String(event.data)) as ServerMessage;
       if (message.type === "state") setRoom(message.state);
       if (message.type === "error") setError(message.message);
+      if (message.type === "removed") {
+        setError(message.message);
+        leaveToHome(party);
+      }
     });
     setSocket(party);
     return () => party.close();
@@ -97,7 +102,20 @@ function App() {
     localStorage.setItem("showmate:name", name.trim());
     history.replaceState({}, "", `/?room=${code}`);
     setError("");
+    setLeavePromptOpen(false);
     setRoomCode(code);
+  }
+
+  function leaveToHome(activeSocket?: PartySocket) {
+    activeSocket?.close();
+    socket?.close();
+    setSocket(undefined);
+    setRoom(undefined);
+    setRoomCode("");
+    setConnected(false);
+    setLeavePromptOpen(false);
+    setRoomInput("");
+    history.replaceState({}, "", "/");
   }
 
   function emit(message: ClientMessage) {
@@ -112,10 +130,19 @@ function App() {
         <Shell><LoadingRoom code={roomCode} connected={connected} /></Shell>
       ) : !room.members.some((member) => member.id === memberId) && room.members.length >= MAX_MEMBERS ? (
         <Shell><FullRoom code={roomCode} /></Shell>
+      ) : !room.members.some((member) => member.id === memberId) ? (
+        <Shell><LoadingRoom code={roomCode} connected={connected} /></Shell>
       ) : (
         <Shell>
-          <Header room={room} connected={connected} />
+          <Header room={room} connected={connected} onLogoClick={() => setLeavePromptOpen(true)} />
           {error && <div className="toast" role="alert">{error}<button onClick={() => setError("")} aria-label="Dismiss">×</button></div>}
+          {leavePromptOpen && (
+            <LeaveRoomDialog
+              roomCode={room.code}
+              onStay={() => setLeavePromptOpen(false)}
+              onHome={() => leaveToHome()}
+            />
+          )}
           {room.status === "lobby" && <Lobby room={room} memberId={memberId} emit={emit} />}
           {room.status === "swiping" && <SwipeDeck room={room} memberId={memberId} emit={emit} />}
           {(room.status === "matched" || room.status === "recommended") && <Result room={room} memberId={memberId} emit={emit} />}
@@ -194,6 +221,7 @@ function Lobby({ room, memberId, emit }: { room: RoomState; memberId: string; em
       <section className="members">
         {Array.from({ length: openSlots }, (_, slot) => {
           const member = room.members[slot];
+          const canRemove = isHost && member && slot !== 0;
           return (
             <div className={`member ${member ? "filled" : ""}`} key={member?.id ?? `slot-${slot}`}>
               <Avatar name={member?.name} />
@@ -201,7 +229,17 @@ function Lobby({ room, memberId, emit }: { room: RoomState; memberId: string; em
                 <strong>{member?.name ?? (slot === 0 ? "Waiting for host" : "Open spot")}</strong>
                 <span>{slot === 0 ? "Host" : member ? "Ready" : "Share the room link"}</span>
               </div>
-              <b className={member?.connected ? "online" : ""} />
+              {canRemove ? (
+                <button
+                  className="remove-member"
+                  aria-label={`Remove ${member.name}`}
+                  onClick={() => emit({ type: "remove", memberId, targetId: member.id })}
+                >
+                  <Close />
+                </button>
+              ) : (
+                <b className={member?.connected ? "online" : ""} />
+              )}
             </div>
           );
         })}
@@ -450,8 +488,31 @@ function Poster({ show }: { show: Show }) {
   );
 }
 
-function Header({ room, connected }: { room: RoomState; connected: boolean }) {
-  return <header><div className="wordmark"><Logo /> ShowMate</div><div className="header-room"><span className={connected ? "connected" : ""} /> {room.code}</div></header>;
+function Header({ room, connected, onLogoClick }: { room: RoomState; connected: boolean; onLogoClick: () => void }) {
+  return (
+    <header>
+      <button className="wordmark wordmark-button" type="button" onClick={onLogoClick} aria-label="ShowMate menu">
+        <Logo /> ShowMate
+      </button>
+      <div className="header-room"><span className={connected ? "connected" : ""} /> {room.code}</div>
+    </header>
+  );
+}
+
+function LeaveRoomDialog({ roomCode, onHome, onStay }: { roomCode: string; onHome: () => void; onStay: () => void }) {
+  return (
+    <div className="modal-backdrop" role="presentation" onClick={onStay}>
+      <div className="modal" role="dialog" aria-modal="true" aria-labelledby="leave-room-title" onClick={(event) => event.stopPropagation()}>
+        <p className="eyebrow">Room {roomCode}</p>
+        <h2 id="leave-room-title">Leave this room?</h2>
+        <p>Go home to start fresh, or stay here with your group.</p>
+        <div className="modal-actions">
+          <button className="primary" onClick={onHome}>Go home</button>
+          <button className="continue-button" onClick={onStay}>Stay in room</button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function Shell({ children }: { children: React.ReactNode }) {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { catalog, durationBucket } from "../src/shared/catalog";
-import { adaptDeck, applySwipe, continueAfterResult, createInitialDeck, findMutualLike, publicRoomState } from "../src/shared/matching";
+import { adaptDeck, applySwipe, continueAfterResult, createInitialDeck, findMutualLike, publicRoomState, removeMember } from "../src/shared/matching";
 import { allowedDurationBuckets, emptyFilterMessage, normalizeDurations, type RoomState } from "../src/shared/types";
 
 function room(overrides: Partial<RoomState> = {}): RoomState {
@@ -69,6 +69,25 @@ describe("group matching", () => {
     const forGuest = publicRoomState(state, "member_b");
     expect(forGuest.swipes).toEqual({ member_b: { beef: "pass" } });
     expect(publicRoomState(state, "member_a").swipes.member_b.beef).toBe("pass");
+  });
+
+  it("lets the host remove a guest without removing the host", () => {
+    const three = room({
+      members: [
+        { id: "member_a", name: "Alex", connected: true },
+        { id: "member_b", name: "Sam", connected: true },
+        { id: "member_c", name: "Riley", connected: true },
+      ],
+      swipes: {
+        member_a: { wednesday: "like" },
+        member_b: { beef: "pass" },
+        member_c: {},
+      },
+    });
+    const next = removeMember(three, "member_b");
+    expect(next.members.map((member) => member.id)).toEqual(["member_a", "member_c"]);
+    expect(next.swipes.member_b).toBeUndefined();
+    expect(removeMember(three, "member_a")).toEqual(three);
   });
 });
 

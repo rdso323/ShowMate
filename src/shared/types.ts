@@ -60,12 +60,14 @@ export type ClientMessage =
   | { type: "start"; memberId: string }
   | { type: "swipe"; memberId: string; showId: string; choice: SwipeChoice }
   | { type: "pick-for-us"; memberId: string }
-  | { type: "continue"; memberId: string };
+  | { type: "continue"; memberId: string }
+  | { type: "remove"; memberId: string; targetId: string };
 
 export type ServerMessage =
   | { type: "state"; state: RoomState }
   | { type: "error"; message: string }
-  | { type: "deck-updated"; showIds: string[] };
+  | { type: "deck-updated"; showIds: string[] }
+  | { type: "removed"; message: string };
 
 export const PLATFORM_LABELS: Record<Platform, string> = {
   netflix: "Netflix",

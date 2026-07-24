@@ -1,5 +1,5 @@
 import { Server, type Connection } from "partyserver";
-import { adaptDeck, applySwipe, continueAfterResult, createInitialDeck, publicRoomState } from "../shared/matching";
+import { adaptDeck, applySwipe, continueAfterResult, createInitialDeck, publicRoomState, removeMember } from "../shared/matching";
 import {
   DURATION_BUCKETS,
   MAX_MEMBERS,
@@ -145,6 +145,39 @@ export class ShowMateRoom extends Server<Env> {
     if (message.type === "continue") {
       this.room = continueAfterResult(this.room);
       this.metric("swiping_resumed");
+    }
+
+    if (message.type === "remove") {
+      await this.remove(connection, message.memberId, message.targetId);
+      return;
+    }
+
+    await this.persistAndBroadcast();
+  }
+
+  private async remove(connection: Connection<ConnectionState>, hostId: string, targetId: string): Promise<void> {
+    if (this.room.members[0]?.id !== hostId) {
+      this.send(connection, { type: "error", message: "Only the host can remove people." });
+      return;
+    }
+    if (this.room.status !== "lobby") {
+      this.send(connection, { type: "error", message: "You can only remove people before swiping starts." });
+      return;
+    }
+    if (targetId === hostId) {
+      this.send(connection, { type: "error", message: "The host can't remove themselves." });
+      return;
+    }
+    if (!this.room.members.some((member) => member.id === targetId)) return;
+
+    this.room = removeMember(this.room, targetId);
+    this.metric("member_removed");
+
+    for (const candidate of this.getConnections<ConnectionState>()) {
+      if (candidate.state?.memberId === targetId) {
+        this.send(candidate, { type: "removed", message: "The host removed you from this room." });
+        candidate.close();
+      }
     }
 
     await this.persistAndBroadcast();
