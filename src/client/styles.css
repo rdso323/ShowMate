@@ -107,33 +107,6 @@ header { height: 74px; padding: 0 22px; display: flex; align-items: center; just
 .chips button { border: 1px solid #d4cabe; border-radius: 30px; background: white; padding: 9px 13px; font-size: 12px; font-weight: 700; cursor: pointer; }
 .chips button.selected { background: var(--ink); color: white; border-color: var(--ink); }
 .chips button:disabled { cursor: default; }
-.platform-chips { gap: 10px; }
-.platform-chip { --platform: #111; min-height: 48px; min-width: 92px; padding: 10px 14px; border-radius: 16px; border: 2px solid transparent; background: color-mix(in srgb, var(--platform) 18%, white); color: var(--platform); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: transform .15s, box-shadow .15s, opacity .15s, border-color .15s; }
-.platform-chip.selected { background: var(--platform); color: white; border-color: var(--ink); box-shadow: 0 6px 0 rgba(32,27,27,.12); transform: translateY(-1px); }
-.platform-chip:disabled { cursor: default; }
-.platform-chip:not(.selected) { opacity: .55; }
-.platform-logo { width: auto; height: 18px; fill: currentColor !important; stroke: none !important; overflow: visible; }
-.platform-logo path, .platform-logo circle, .platform-logo text { fill: currentColor; stroke: none; }
-.platform-logo.prime { height: 14px; width: 78px; }
-.platform-logo.disney { height: 18px; width: 78px; }
-.platform-logo.compact { height: 14px; }
-.platform-logo.prime.compact { height: 11px; width: 58px; }
-.platform-logo.disney.compact { height: 13px; width: 58px; }
-.platform-logo.disney .disney-plus { fill: var(--platform); }
-.platform-chip:not(.selected) .platform-logo.disney .disney-plus { fill: var(--platform); }
-.platform-chip.selected .platform-logo.disney circle,
-.poster-platform .platform-logo.disney circle,
-.watch-link .platform-logo.disney circle { fill: #fff; }
-.platform-chip.selected .platform-logo.disney .disney-plus,
-.poster-platform .platform-logo.disney .disney-plus,
-.watch-link .platform-logo.disney .disney-plus { fill: var(--platform); }
-.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
-.card-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 11px; color: #756d63; margin: 6px 0 10px; }
-.card-meta .platform-logo { color: var(--ink); }
-.host-vote-platform { display: inline-flex; align-items: center; gap: 6px; font-size: 10px; color: #7d7469; }
-.result-meta { display: inline-flex; align-items: center; justify-content: center; gap: 7px; font-size: 10px; text-transform: none; letter-spacing: 0; font-weight: 700; }
-.watch-link { gap: 10px; }
-.watch-link .platform-logo { color: white; }
 .sticky-action { width: 100%; margin-top: 28px; }
 .waiting-note { padding: 18px; text-align: center; color: #70685f; font-size: 13px; }
 .pulse { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--red); margin-right: 7px; animation: pulse 1.2s infinite; }
@@ -167,7 +140,7 @@ header { height: 74px; padding: 0 22px; display: flex; align-items: center; just
 .poster-fallback span { text-transform: uppercase; letter-spacing: 3px; font-size: 9px; font-weight: 700; opacity: .75; }
 .poster-fallback strong { font: 800 clamp(29px, 8vw, 44px)/.9 "Manrope"; letter-spacing: -2px; max-width: 88%; margin-top: 8px; }
 .poster-fallback i { font-style: normal; font-size: 11px; margin-top: 11px; }
-.poster-platform { position: absolute; z-index: 3; left: 15px; bottom: 15px; border-radius: 14px; padding: 8px 11px; background: rgba(20,17,18,.82); backdrop-filter: blur(8px); color: white; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 3px 12px #0004; }
+.poster-platform { position: absolute; z-index: 3; left: 15px; bottom: 15px; border-radius: 20px; padding: 7px 10px; background: rgba(20,17,18,.78); backdrop-filter: blur(8px); color: white; text-transform: uppercase; letter-spacing: 1.2px; font-size: 8px; font-weight: 800; box-shadow: 0 3px 12px #0004; }
 .card-details { padding: 18px 20px; }
 .title-line { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
 .title-line h2 { font: 800 24px/1.05 "Manrope"; letter-spacing: -1px; margin: 0; }
