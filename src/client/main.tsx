@@ -22,6 +22,7 @@ import {
   type Show,
   type SwipeChoice,
 } from "../shared/types";
+import { PLATFORM_COLORS, PlatformLogo } from "./platform-logos";
 import "./styles.css";
 
 const CatalogContext = createContext<Show[]>(seedCatalog);
@@ -254,13 +255,10 @@ function Lobby({ room, memberId, emit }: { room: RoomState; memberId: string; em
         disabled={!isHost}
         onChange={(next) => configure(room.platforms, next as MediaType[], durations)}
       />
-      <Filter
-        title="Where are you watching?"
-        options={PLATFORMS}
+      <PlatformFilter
         selected={room.platforms}
-        labels={PLATFORM_LABELS}
         disabled={!isHost}
-        onChange={(platforms) => configure(platforms as Platform[], mediaTypes, durations)}
+        onChange={(platforms) => configure(platforms, mediaTypes, durations)}
       />
       <Filter
         title="How much time do you have?"
@@ -276,6 +274,41 @@ function Lobby({ room, memberId, emit }: { room: RoomState; memberId: string; em
         ? <button className="primary sticky-action" disabled={!canStart} onClick={() => emit({ type: "start", memberId })}>{canStart ? `Start swiping · ${room.members.length} people` : `Need at least ${MIN_MEMBERS_TO_START} people`} <Arrow /></button>
         : <div className="waiting-note"><span className="pulse" /> Waiting for the host to start</div>}
     </main>
+  );
+}
+
+function PlatformFilter({
+  selected,
+  disabled,
+  onChange,
+}: {
+  selected: readonly Platform[];
+  disabled: boolean;
+  onChange: (value: Platform[]) => void;
+}) {
+  return (
+    <section className="filter">
+      <h3>Where are you watching?</h3>
+      <div className="chips platform-chips">
+        {PLATFORMS.map((platform) => {
+          const active = selected.includes(platform);
+          return (
+            <button
+              key={platform}
+              type="button"
+              disabled={disabled}
+              aria-pressed={active}
+              aria-label={PLATFORM_LABELS[platform]}
+              className={`platform-chip ${active ? "selected" : ""}`}
+              style={{ "--platform": PLATFORM_COLORS[platform] } as React.CSSProperties}
+              onClick={() => onChange(active ? selected.filter((value) => value !== platform) : [...selected, platform])}
+            >
+              <PlatformLogo platform={platform} />
+            </button>
+          );
+        })}
+      </div>
+    </section>
   );
 }
 
@@ -392,7 +425,7 @@ function SwipeDeck({ room, memberId, emit }: { room: RoomState; memberId: string
           <Poster show={show} />
           <div className="card-details">
             <div className="title-line"><h2>{show.title}</h2><span>{show.rating.toFixed(1)}</span></div>
-            <p>{show.year} · {show.runtime} min · {PLATFORM_LABELS[show.platform]} · {MEDIA_TYPE_LABELS[show.mediaType]}</p>
+            <p className="card-meta">{show.year} · {show.runtime} min · <PlatformLogo platform={show.platform} compact /> · {MEDIA_TYPE_LABELS[show.mediaType]}</p>
             <div className="tag-row">{show.genres.map((genre) => <span key={genre}>{genre}</span>)}</div>
             <p className="synopsis">{show.synopsis}</p>
           </div>
@@ -424,7 +457,7 @@ function HostAnalytics({ room, compact = false }: { room: RoomState; compact?: b
             <article key={showId} className="host-vote-row">
               <div>
                 <strong>{show?.title ?? showId}</strong>
-                <span>{show ? `${PLATFORM_LABELS[show.platform]} · ${MEDIA_TYPE_LABELS[show.mediaType]}` : "Title"}</span>
+                <span className="host-vote-platform">{show ? <><PlatformLogo platform={show.platform} compact /> · {MEDIA_TYPE_LABELS[show.mediaType]}</> : "Title"}</span>
               </div>
               <ul>
                 {room.members.map((member) => {
@@ -461,9 +494,11 @@ function Result({ room, memberId, emit }: { room: RoomState; memberId: string; e
       <p className="eyebrow">{matched ? (room.members.length > 2 ? "The group said yes" : "You both said yes") : "ShowMate pick"}</p>
       <h1>{matched ? "It's a match." : "We found your middle ground."}</h1>
       <div className="result-poster"><Poster show={show} /><div className="match-badge"><Heart /> {matched ? "MATCH" : "FOR YOU"}</div></div>
-      <div className="result-copy"><span>{PLATFORM_LABELS[show.platform]} · {show.runtime} min · {MEDIA_TYPE_LABELS[show.mediaType]}</span><h2>{show.title}</h2><p>{recommendation?.reason ?? (room.members.length > 2 ? "Everyone picked it. Tonight's decision is settled." : "You both picked it. Tonight's decision is settled.")}</p></div>
+      <div className="result-copy"><span className="result-meta"><PlatformLogo platform={show.platform} compact /> · {show.runtime} min · {MEDIA_TYPE_LABELS[show.mediaType]}</span><h2>{show.title}</h2><p>{recommendation?.reason ?? (room.members.length > 2 ? "Everyone picked it. Tonight's decision is settled." : "You both picked it. Tonight's decision is settled.")}</p></div>
       <div className="result-actions">
-        <a className="primary watch-link" href={show.watchUrl} target="_blank" rel="noreferrer">Watch on {PLATFORM_LABELS[show.platform]} <Arrow /></a>
+        <a className="primary watch-link" href={show.watchUrl} target="_blank" rel="noreferrer" style={{ "--platform": PLATFORM_COLORS[show.platform] } as React.CSSProperties}>
+          <PlatformLogo platform={show.platform} compact /> Watch on {PLATFORM_LABELS[show.platform]} <Arrow />
+        </a>
         {matched && <button className="continue-button" onClick={() => emit({ type: "continue", memberId })}>Keep swiping</button>}
       </div>
       {isHost && <HostAnalytics room={room} />}
@@ -483,7 +518,10 @@ function Poster({ show }: { show: Show }) {
       <div className="poster-fallback"><span>{show.genres[0]}</span><strong>{show.title}</strong><i>{show.year}</i></div>
       <img className={`poster-image poster-thumbnail ${thumbnailLoaded ? "loaded" : ""}`} src={posterAssetUrl(show.id, "thumbnail")} alt="" aria-hidden="true" decoding="async" fetchPriority="high" onLoad={() => setThumbnailLoadedFor(show.id)} onError={(event) => { event.currentTarget.hidden = true; }} />
       <img className={`poster-image poster-full ${fullLoaded ? "loaded" : ""}`} src={posterAssetUrl(show.id, "full")} alt={`${show.title} poster`} decoding="async" fetchPriority="high" onLoad={() => setFullLoadedFor(show.id)} onError={(event) => { event.currentTarget.hidden = true; }} />
-      <span className="poster-platform">{PLATFORM_LABELS[show.platform]}</span>
+      <span className="poster-platform" style={{ "--platform": PLATFORM_COLORS[show.platform] } as React.CSSProperties}>
+        <PlatformLogo platform={show.platform} compact />
+        <span className="sr-only">{PLATFORM_LABELS[show.platform]}</span>
+      </span>
     </div>
   );
 }
