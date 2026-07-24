@@ -1,0 +1,33 @@
+-- Replace broken movie poster URLs with working cover art.
+UPDATE shows SET poster_url = CASE id
+  WHEN 'moana-2-m1241982' THEN 'https://m.media-amazon.com/images/M/MV5BZDUxNThhYTUtYjgxNy00MGQ4LTgzOTEtZjg1YTU5NTcwNThlXkEyXkFqcGc@._V1_SX600.jpg'
+  WHEN 'rebel-ridge-m974602' THEN 'https://m.media-amazon.com/images/M/MV5BYTE4ZDE5ZTktZWZkMC00MGY4LWFkZDUtZTc5YWU3NzM2YmM3XkEyXkFqcGc@._V1_SX600.jpg'
+  WHEN 'road-house-m959429' THEN 'https://m.media-amazon.com/images/M/MV5BODVkYjlkM2UtNWVlMS00N2U1LTgxOTYtODlmNmE1YTgzMjczXkEyXkFqcGc@._V1_SX600.jpg'
+  WHEN 'anyone-but-you-m1072790' THEN 'https://m.media-amazon.com/images/M/MV5BZWUxYTFhMzItMmE0ZC00ODgzLTkwZWItOGUwMTI1YjQwMDJjXkEyXkFqcGc@._V1_SX600.jpg'
+  WHEN 'wonka-m787699' THEN 'https://m.media-amazon.com/images/M/MV5BM2Y1N2ZhNjctYjVhZC00MDg2LWFhNTItMzI3ZjAwZDhjYmFiXkEyXkFqcGc@._V1_SX600.jpg'
+  WHEN 'extraction-2-m697843' THEN 'https://m.media-amazon.com/images/M/MV5BZGQwNDdhODAtY2Y0Ni00YzFhLTk1OGUtY2RkMDAzNzBmZjAxXkEyXkFqcGc@._V1_SX600.jpg'
+  WHEN 'leave-the-world-behind-m1008042' THEN 'https://m.media-amazon.com/images/M/MV5BZjI0YzhjZjAtMzg3ZS00NTFhLWFkYjctMjE5ZGExNTk1MmJkXkEyXkFqcGc@._V1_SX600.jpg'
+  WHEN 'air-m966220' THEN 'https://m.media-amazon.com/images/M/MV5BNjdjYzJkZmUtZDNiMC00MzQ0LWE2MGEtYTk4ZGM4NzFkMzM3XkEyXkFqcGc@._V1_SX600.jpg'
+  WHEN 'glass-onion-m661374' THEN 'https://m.media-amazon.com/images/M/MV5BMzI2ZDYxZTEtMzVlOC00OTUyLTgyNTAtYWFhNmRhZjAzZWE1XkEyXkFqcGc@._V1_SX600.jpg'
+  WHEN 'red-notice-m512195' THEN 'https://m.media-amazon.com/images/M/MV5BOGNjNGQ3MmItYTM5NS00NjBiLWI0ZTItZDE5ZjQyNjg3ODBjXkEyXkFqcGc@._V1_SX600.jpg'
+  WHEN 'don-t-look-up-m646385' THEN 'https://m.media-amazon.com/images/M/MV5BMjhhNWFjNzctYTJjOS00MDc0LThiNjItZmM0ZDVmMWViY2UzXkEyXkFqcGc@._V1_QL75_UY562_CR35,0,380,562_.jpg'
+  WHEN 'elvis-m614934' THEN 'https://m.media-amazon.com/images/M/MV5BNTVhZmUyMDQtY2I5Ny00OWNiLTgzNjUtMTg4YTQwMTc0OTQxXkEyXkFqcGc@._V1_SX600.jpg'
+  WHEN 'crazy-rich-asians-m455207' THEN 'https://m.media-amazon.com/images/M/MV5BMTYxNDMyOTAxN15BMl5BanBnXkFtZTgwMDg1ODYzNTM@._V1_SX600.jpg'
+  WHEN 'turning-red-m508947' THEN 'https://m.media-amazon.com/images/M/MV5BODY2NjExYmUtZTQ4NS00NzM2LWE2NWYtZWY2NGIyOTBmNzI3XkEyXkFqcGc@._V1_SX600.jpg'
+  WHEN 'a-star-is-born-m332562' THEN 'https://m.media-amazon.com/images/M/MV5BNGUxZTc0NTAtNzQwMy00MmM2LTgzMGYtZWIyY2E1MGFjYmM5XkEyXkFqcGc@._V1_SX600.jpg'
+  WHEN 'the-adam-project-m696506' THEN 'https://m.media-amazon.com/images/M/MV5BNWU1NDJlYWUtYWE1OC00MGVlLTliNzYtMjg4OTk0MWE4MDQ4XkEyXkFqcGc@._V1_QL75_UY562_CR0,0,380,562_.jpg'
+  WHEN 'the-color-purple-m872585' THEN 'https://m.media-amazon.com/images/M/MV5BYzg2ZGEzZjItZWY3Ni00MTFjLTk3ZmEtZTE1OGFmOTkzM2I4XkEyXkFqcGc@._V1_SX600.jpg'
+  WHEN 'the-tomorrow-war-m588228' THEN 'https://m.media-amazon.com/images/M/MV5BYmUyNzY2YWYtNWQ0My00ODMwLTkwOTQtOTA0ZjM0MjRmYjJiXkEyXkFqcGc@._V1_SX600.jpg'
+  WHEN 'aquaman-and-the-lost-kingdom-m572802' THEN 'https://m.media-amazon.com/images/M/MV5BYjQ1ZTUzMWMtY2VkNS00ZDRjLWEwODYtYmFkMWJiNTQxMDUzXkEyXkFqcGc@._V1_SX600.jpg'
+  WHEN 'the-gray-man-m725201' THEN 'https://m.media-amazon.com/images/M/MV5BZmFhZTNlNzctZGQzZi00MTA3LThiNjMtYWQzNjUzMjNjZjA3XkEyXkFqcGc@._V1_SX600.jpg'
+  WHEN 'sound-of-metal-m519015' THEN 'https://m.media-amazon.com/images/M/MV5BMWE5ZmYwNDEtYTYwMS00MTc0LTk2ZWItZTM1MjQ1ZDYzZGUzXkEyXkFqcGc@._V1_SX600.jpg'
+  WHEN 'the-flash-m298618' THEN 'https://m.media-amazon.com/images/M/MV5BYmE2NzBjNGUtNTJiMy00N2UxLWEyYzMtYzFjODFhMGZlOTgzXkEyXkFqcGc@._V1_SX600.jpg'
+  WHEN 'it-chapter-two-m474350' THEN 'https://m.media-amazon.com/images/M/MV5BYzUxM2VhOGItZTY2My00OTA4LWI4NjUtMDA5YWJjM2M2NDJjXkEyXkFqcGc@._V1_SX600.jpg'
+  WHEN 'without-remorse-m460465' THEN 'https://m.media-amazon.com/images/M/MV5BNzE0NjU1MmUtZWUzMS00ZWRiLWE5ZjYtODk3NmRlMmExYWI1XkEyXkFqcGc@._V1_SX600.jpg'
+  WHEN 'i-want-you-back-m785084' THEN 'https://m.media-amazon.com/images/M/MV5BM2NhNWRkNDYtM2QzOS00YzZjLTlmNTEtNDgyNDlhN2Y4MGVmXkEyXkFqcGc@._V1_SX600.jpg'
+  WHEN 'my-spy-m582566' THEN 'https://m.media-amazon.com/images/M/MV5BNDBiMDRkNmUtMzBmYy00NGM1LTgyNmMtMzBmNTg4Y2FhOGE4XkEyXkFqcGc@._V1_SX600.jpg'
+  WHEN 'coming-2-america-m484718' THEN 'https://m.media-amazon.com/images/M/MV5BN2NhODZjMTktOGNmOC00OTllLTk3NWItYzNiNmRlNTYwMTcxXkEyXkFqcGc@._V1_SX600.jpg'
+  WHEN 'one-night-in-miami-m661542' THEN 'https://m.media-amazon.com/images/M/MV5BODRhN2U5OTAtYzlkYi00MGM5LWFmYjctZTRkODllZGM5YThlXkEyXkFqcGc@._V1_SX600.jpg'
+  ELSE poster_url
+END
+WHERE id IN ('moana-2-m1241982', 'rebel-ridge-m974602', 'road-house-m959429', 'anyone-but-you-m1072790', 'wonka-m787699', 'extraction-2-m697843', 'leave-the-world-behind-m1008042', 'air-m966220', 'glass-onion-m661374', 'red-notice-m512195', 'don-t-look-up-m646385', 'elvis-m614934', 'crazy-rich-asians-m455207', 'turning-red-m508947', 'a-star-is-born-m332562', 'the-adam-project-m696506', 'the-color-purple-m872585', 'the-tomorrow-war-m588228', 'aquaman-and-the-lost-kingdom-m572802', 'the-gray-man-m725201', 'sound-of-metal-m519015', 'the-flash-m298618', 'it-chapter-two-m474350', 'without-remorse-m460465', 'i-want-you-back-m785084', 'my-spy-m582566', 'coming-2-america-m484718', 'one-night-in-miami-m661542');

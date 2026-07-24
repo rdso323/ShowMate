@@ -20,7 +20,9 @@
   "migrations": [
     {
       "tag": "v1",
-      "new_sqlite_classes": ["ShowMateRoom"]
+      "new_sqlite_classes": [
+        "ShowMateRoom"
+      ]
     }
   ],
   "d1_databases": [
@@ -49,5 +51,10 @@
       "binding": "METRICS",
       "dataset": "showmate_events"
     }
-  ]
+  ],
+  "triggers": {
+    "crons": [
+      "0 10 * * *"
+    ]
+  }
 }

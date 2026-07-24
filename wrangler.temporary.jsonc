@@ -1,7 +1,6 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
-  "name": "showmate",
-  "account_id": "4a7746df73b55fffd82c3f3901371a76",
+  "name": "showmate-preview",
   "main": "src/worker/index.ts",
   "compatibility_date": "2026-07-22",
   "workers_dev": true,
@@ -23,53 +22,28 @@
   "migrations": [
     {
       "tag": "v1",
-      "new_sqlite_classes": [
-        "ShowMateRoom"
-      ]
+      "new_sqlite_classes": ["ShowMateRoom"]
     }
   ],
-  "ai": {
-    "binding": "AI"
-  },
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "showmate-db",
-      "database_id": "7120ae10-72e3-43a0-a1fc-296e9d33fcb9",
+      "database_name": "showmate-preview-db",
+      "database_id": "c2dfceb1-f81d-4df7-915c-3d0c3776dfd3",
       "migrations_dir": "migrations"
     }
   ],
   "kv_namespaces": [
     {
       "binding": "CACHE",
-      "id": "bac84ff689a24890b7826919907240d2"
-    }
-  ],
-  "vectorize": [
-    {
-      "binding": "SHOW_VECTORS",
-      "index_name": "showmate-shows"
+      "id": "f5b9e18293ab458eb86e9fc947e079e1"
     }
   ],
   "workflows": [
     {
       "binding": "POST_MATCH_WORKFLOW",
-      "name": "showmate-post-match",
+      "name": "showmate-preview-post-match",
       "class_name": "PostMatchWorkflow"
     }
-  ],
-  "analytics_engine_datasets": [
-    {
-      "binding": "METRICS",
-      "dataset": "showmate_events"
-    }
-  ],
-  "observability": {
-    "enabled": true
-  },
-  "triggers": {
-    "crons": [
-      "0 10 * * *"
-    ]
-  }
+  ]
 }
