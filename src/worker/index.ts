@@ -35,13 +35,13 @@ export default {
 
   async scheduled(_controller: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
     ctx.waitUntil(syncCatalogFromTmdb(env).then((result) => {
-      env.METRICS.writeDataPoint({
+      env.METRICS?.writeDataPoint({
         blobs: ["catalog_sync", result.skipped ? "skipped" : "ok", result.reason ?? ""],
         doubles: [result.upserted],
         indexes: ["catalog"],
       });
     }).catch((error) => {
-      env.METRICS.writeDataPoint({
+      env.METRICS?.writeDataPoint({
         blobs: ["catalog_sync", "error", error instanceof Error ? error.message : "unknown"],
         doubles: [0],
         indexes: ["catalog"],

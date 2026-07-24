@@ -12,7 +12,7 @@ interface TextResponse {
 }
 
 export async function ensureCatalogVectors(env: Env, shows: Show[]): Promise<void> {
-  if (!shows.length) return;
+  if (!shows.length || !env.AI || !env.SHOW_VECTORS) return;
   const version = `catalog-v3:${shows.map((show) => show.id).sort().join(",")}`.slice(0, 200);
   if (await env.CACHE.get(`vectors:${version}`)) return;
   const response = await env.AI.run("@cf/baai/bge-base-en-v1.5", {
@@ -27,6 +27,7 @@ export async function ensureCatalogVectors(env: Env, shows: Show[]): Promise<voi
 }
 
 export async function similarShowIds(env: Env, show: Show): Promise<string[]> {
+  if (!env.AI || !env.SHOW_VECTORS) return [];
   const cacheKey = `similar:v3:${show.id}`;
   const cached = await env.CACHE.get<string[]>(cacheKey, "json");
   if (cached) return cached;
@@ -43,14 +44,15 @@ export async function matchReason(env: Env, show: Show, memberCount: number): Pr
   if (cached) return cached;
   const audience = memberCount > 2 ? `a group of ${memberCount}` : "a couple";
   const kind = show.mediaType === "movie" ? "movie" : "show";
+  const fallback = memberCount > 2
+    ? `The whole group chose ${show.title}, so tonight's watch is settled.`
+    : `You both chose ${show.title}, so tonight's decision is officially settled.`;
+  if (!env.AI) return fallback;
   const result = await env.AI.run("@cf/meta/llama-3.1-8b-instruct", {
     prompt: `Write one playful sentence, under 24 words, explaining why ${audience} should watch ${show.title}, a ${show.genres.join(" and ")} ${kind}. Return only the sentence.`,
     max_tokens: 64,
   }) as TextResponse;
-  const reason = result.response?.trim()
-    || (memberCount > 2
-      ? `The whole group chose ${show.title}, so tonight's watch is settled.`
-      : `You both chose ${show.title}, so tonight's decision is officially settled.`);
+  const reason = result.response?.trim() || fallback;
   await env.CACHE.put(cacheKey, reason, { expirationTtl: 86400 });
   return reason;
 }
@@ -64,6 +66,7 @@ export async function compromisePick(env: Env, state: RoomState, shows: Show[]):
   const prompt = `Choose one title that best bridges a group's tastes. Return strict JSON with showId and a playful reason under 24 words. You may only choose from: ${candidates.map((show) => `${show.id} (${show.genres.join(", ")})`).join("; ")}.`;
 
   try {
+    if (!env.AI) return fallbackPick(candidates);
     const result = await env.AI.run("@cf/meta/llama-3.1-8b-instruct", { prompt, max_tokens: 120 }) as TextResponse;
     const parsed = parseAiJson(result.response ?? "");
     if (candidates.some((show) => show.id === parsed.showId) && parsed.reason) return parsed;

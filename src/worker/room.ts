@@ -215,7 +215,7 @@ export class ShowMateRoom extends Server<Env> {
   }
 
   private metric(event: string, detail = ""): void {
-    this.env.METRICS.writeDataPoint({ blobs: [event, detail], indexes: [this.room.code] });
+    this.env.METRICS?.writeDataPoint({ blobs: [event, detail], indexes: [this.room.code] });
   }
 
   private async persistAndBroadcast(): Promise<void> {

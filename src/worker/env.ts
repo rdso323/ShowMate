@@ -4,12 +4,12 @@ import type { PostMatchParams } from "./workflow";
 export interface Env {
   ShowMateRoom: DurableObjectNamespace<ShowMateRoom>;
   ASSETS: Fetcher;
-  AI: Ai;
   DB: D1Database;
   CACHE: KVNamespace;
-  SHOW_VECTORS: VectorizeIndex;
   POST_MATCH_WORKFLOW: Workflow<PostMatchParams>;
-  METRICS: AnalyticsEngineDataset;
+  AI?: Ai;
+  SHOW_VECTORS?: VectorizeIndex;
+  METRICS?: AnalyticsEngineDataset;
   TMDB_API_KEY?: string;
   CATALOG_SYNC_TOKEN?: string;
 }

@@ -18,7 +18,7 @@ export class PostMatchWorkflow extends WorkflowEntrypoint<Env, PostMatchParams> 
       ).bind(params.roomCode, params.showId, JSON.stringify(params.memberNames), params.kind, params.reason).run();
     });
     await step.do("record analytics", async () => {
-      this.env.METRICS.writeDataPoint({
+      this.env.METRICS?.writeDataPoint({
         blobs: ["match_completed", params.roomCode, params.showId, params.kind],
         doubles: [params.memberNames.length],
         indexes: [params.roomCode],
