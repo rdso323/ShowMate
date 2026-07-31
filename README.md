@@ -2,7 +2,9 @@
 
 ShowMate helps a group decide what to watch together. Create a room, invite up to 10 people, filter movies and TV by platform, and swipe independently. When everyone likes the same title, the room gets a real-time match celebration; if the deck runs out, an AI-assisted fallback recommendation keeps the decision moving.
 
-**Live demo (hackathon freeze):** https://showmate.rohand97.workers.dev
+**Live demo:** https://showmate.rohand97.workers.dev
+
+**Hackathon snapshot:** branch [`hackathon-freeze`](https://github.com/rdso323/ShowMate/tree/hackathon-freeze) preserves the exact state submitted for judging.
 
 ## Features
 
@@ -55,10 +57,10 @@ The local profile uses local Durable Objects, D1, KV, Workflows, Analytics Engin
 
 ### Optional TMDB catalog sync
 
-The app ships with a large seeded catalog so local and hackathon demos work without secrets. To refresh trending movies/TV from TMDB:
+The app ships with a large seeded catalog so demos work without secrets. To refresh trending movies/TV from TMDB:
 
 1. Create a free TMDB API key.
-2. Set the Worker secret: `npx wrangler secret put TMDB_API_KEY --config wrangler.preview.jsonc`
+2. Set the Worker secret: `npx wrangler secret put TMDB_API_KEY --config wrangler.public.jsonc`
 3. Optionally set `CATALOG_SYNC_TOKEN` and call `POST /api/catalog/sync` with `Authorization: Bearer <token>`.
 4. Cron runs daily at 10:00 UTC when the Worker is deployed with triggers enabled.
 
@@ -71,24 +73,45 @@ npm run build
 npm audit --audit-level=high
 ```
 
-## Deployment safety
+## Deployment (Workers Builds / Git)
 
-The hackathon/public site must stay frozen unless you intentionally update it.
+Preferred path: connect the `showmate` Worker to this GitHub repo so pushes deploy automatically — no local `wrangler deploy` required.
 
-| Command | Worker name | Effect |
+### One-time Cloudflare dashboard setup
+
+1. Open [Workers & Pages](https://dash.cloudflare.com/?to=/:account/workers-and-pages) on the **public/demo** account (the one serving `showmate.rohand97.workers.dev`).
+2. Select the **`showmate`** Worker → **Settings** → **Builds** → **Connect**.
+3. Authorize GitHub and choose **`rdso323/ShowMate`**.
+4. Use these build settings:
+
+| Setting | Value |
+| --- | --- |
+| Git production branch | `main` |
+| Build command | `npm run build` |
+| Deploy command | `npm run deploy:ci` |
+| Non-production branch deploy command | `npm run deploy:ci:preview` |
+| Root directory | `/` (default) |
+
+5. Save, then push (or retry a build) so the first Git deploy runs.
+6. After the first successful Git deploy of the expanded catalog, apply D1 migrations once from a machine with account access:
+
+```sh
+npm run db:migrate:public
+```
+
+Worker name in the dashboard must remain `showmate` to match `wrangler.public.jsonc`.
+
+### Manual deploy targets (optional)
+
+| Command | Worker | Effect |
 | --- | --- | --- |
-| `npm run dev:local` | local only | Does **not** change any Cloudflare deployment |
-| `npm run deploy:preview` | `showmate-preview` | Separate preview URL on the personal account; does **not** overwrite `showmate` |
-| `npm run deploy:individual` | `showmate` (personal account) | Updates the personal-account Worker named `showmate` |
-| `npm run deploy:public` | `showmate` (public/demo account) | Updates the live demo at showmate.rohand97.workers.dev |
-
-**Do not run `deploy:public` until you are ready to change the official demo.**
-
-Branch deploys are not automatic from GitHub. Preview URLs are created by deploying a differently named Worker (`showmate-preview`), not by deploying over `main`'s Worker.
+| `npm run deploy` / `deploy:public` | `showmate` (public account) | Live demo |
+| `npm run deploy:preview` | `showmate-preview` | Personal-account preview |
+| `npm run deploy:individual` | `showmate` (personal account) | Personal-account Worker |
+| `npm run dev:local` | local only | No Cloudflare changes |
 
 ## Repository workflow
 
-- `main` is the frozen hackathon snapshot.
-- `personal-work` is the personal development branch.
-- Feature work should land through PRs into `personal-work`.
-- Deploy only when you intentionally want to update a specific Cloudflare target.
+- `hackathon-freeze` — immutable snapshot of the hackathon submission.
+- `main` — active development; Workers Builds should deploy this branch to production.
+- Feature work lands through PRs into `main`.
