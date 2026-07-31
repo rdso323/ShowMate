@@ -1,6 +1,6 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
-  "name": "showmate",
+  "name": "showmate-preview",
   "account_id": "4a7746df73b55fffd82c3f3901371a76",
   "main": "src/worker/index.ts",
   "compatibility_date": "2026-07-22",
@@ -54,7 +54,7 @@
   "workflows": [
     {
       "binding": "POST_MATCH_WORKFLOW",
-      "name": "showmate-post-match",
+      "name": "showmate-preview-post-match",
       "class_name": "PostMatchWorkflow"
     }
   ],

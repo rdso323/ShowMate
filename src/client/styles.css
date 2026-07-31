@@ -8,6 +8,9 @@ button, a { -webkit-tap-highlight-color: transparent; }
 button { color: inherit; }
 svg { width: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .wordmark { display: flex; align-items: center; gap: 9px; font: 800 21px "Manrope", sans-serif; letter-spacing: -.7px; }
+.wordmark-button { border: 0; background: none; padding: 0; cursor: pointer; color: inherit; }
+.wordmark-button:hover { opacity: .82; }
+.wordmark-button:focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; border-radius: 8px; }
 .showmate-logo { width: 39px; height: 34px; overflow: visible; stroke-width: 1.8; }
 .logo-card-back { fill: #ffcc61; stroke: var(--ink); }
 .logo-card-front { fill: var(--red); stroke: var(--ink); }
@@ -70,7 +73,35 @@ header { height: 74px; padding: 0 22px; display: flex; align-items: center; just
 .member span { font-size: 11px; color: #8a8176; }
 .member b { position: absolute; right: 16px; width: 8px; height: 8px; border-radius: 50%; background: #ccc; }
 .member b.online { background: #48bd62; }
+.remove-member { position: absolute; right: 12px; width: 32px; height: 32px; border: 1px solid #e2d5d5; border-radius: 10px; background: #fff7f7; color: #b33b4a; display: grid; place-items: center; cursor: pointer; }
+.remove-member svg { width: 15px; }
+.remove-member:hover { background: #ffe4e7; border-color: #f0b4bb; }
+.member:nth-child(3).filled .avatar { background: #9ad7ff; }
+.member:nth-child(4).filled .avatar { background: #c9ff72; }
+.member:nth-child(5).filled .avatar { background: #ffb4a2; }
+.member-count { margin: -8px 0 18px; font-size: 12px; font-weight: 700; color: #7a7167; }
+.defaults-note { margin: -6px 0 18px; padding: 12px 14px; border-radius: 14px; background: #fff4d8; border: 1px solid #f0dfb0; font-size: 12px; line-height: 1.45; color: #5f564c; }
 .filter { margin: 25px 0; }
+.filter-hint { margin: -2px 0 10px; font-size: 11px; color: #857b70; }
+.chips button.blocked { opacity: .38; text-decoration: line-through; background: #efe8dd; }
+.analytics-toggle { border: 1px solid #d4cabe; background: white; border-radius: 20px; padding: 6px 10px; font-size: 10px; font-weight: 800; cursor: pointer; }
+.host-analytics { margin: 0 0 16px; padding: 14px; border: 1px solid #e2d8cb; border-radius: 16px; background: #fffdf8; }
+.host-analytics.compact { max-height: 180px; overflow: auto; }
+.host-analytics-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
+.host-analytics-head strong { font: 800 13px "Manrope"; }
+.host-analytics-list { display: grid; gap: 10px; }
+.host-vote-row { display: grid; gap: 8px; padding-top: 8px; border-top: 1px solid #efe6da; }
+.host-vote-row:first-child { border-top: 0; padding-top: 0; }
+.host-vote-row > div { display: flex; flex-direction: column; gap: 2px; }
+.host-vote-row strong { font-size: 13px; }
+.host-vote-row > div span { font-size: 10px; color: #7d7469; }
+.host-vote-row ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.host-vote-row li { display: flex; gap: 6px; align-items: center; border-radius: 999px; padding: 4px 8px; background: #f3ebe0; font-size: 10px; font-weight: 700; }
+.host-vote-row li.like { background: #dff7e4; color: #1f7a3a; }
+.host-vote-row li.pass { background: #ffe0e4; color: #a12838; }
+.host-vote-row li.pending { color: #8a8176; }
+.host-vote-row li em { font-style: normal; opacity: .85; }
+.result-screen .host-analytics { text-align: left; margin-top: 18px; background: rgba(255,255,255,.55); }
 .filter h3 { font: 800 15px "Manrope"; margin: 0 0 11px; }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .chips button { border: 1px solid #d4cabe; border-radius: 30px; background: white; padding: 9px 13px; font-size: 12px; font-weight: 700; cursor: pointer; }
@@ -81,6 +112,12 @@ header { height: 74px; padding: 0 22px; display: flex; align-items: center; just
 .pulse { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--red); margin-right: 7px; animation: pulse 1.2s infinite; }
 .toast { position: fixed; z-index: 10; top: 84px; left: 50%; transform: translateX(-50%); width: min(450px, calc(100% - 34px)); background: #302929; color: white; border-radius: 13px; padding: 13px 16px; font-size: 13px; box-shadow: 0 10px 30px #0003; }
 .toast button { float: right; border: 0; background: none; color: white; cursor: pointer; }
+.modal-backdrop { position: fixed; inset: 0; z-index: 20; background: rgba(28, 22, 20, .42); display: grid; place-items: center; padding: 22px; }
+.modal { width: min(380px, 100%); background: var(--cream); border: 2px solid var(--ink); border-radius: 24px; padding: 24px; box-shadow: 10px 12px 0 rgba(32,27,27,.16); }
+.modal h2 { font: 800 28px/1 "Manrope"; letter-spacing: -1.4px; margin: 0 0 10px; }
+.modal > p:not(.eyebrow) { margin: 0 0 22px; color: #6f665d; line-height: 1.45; }
+.modal-actions { display: grid; gap: 10px; }
+.modal-actions .primary, .modal-actions .continue-button { width: 100%; }
 
 .swipe-screen { background: linear-gradient(#fffaf1 70%, #f3ebdf); }
 .deck-top { display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; color: #71695f; }
@@ -94,7 +131,7 @@ header { height: 74px; padding: 0 22px; display: flex; align-items: center; just
 .show-card.exit-like { transform: translateX(130%) rotate(18deg); opacity: 0; }
 .show-card.exit-pass { transform: translateX(-130%) rotate(-18deg); opacity: 0; }
 .poster { --accent: #9854d8; width: 100%; height: 100%; min-height: 220px; background: linear-gradient(145deg, var(--accent), #17141c 82%); color: white; position: relative; overflow: hidden; }
-.poster-image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 28%; display: block; opacity: 0; transition: opacity .18s ease; will-change: opacity; }
+.poster-image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center top; display: block; opacity: 0; transition: opacity .18s ease; will-change: opacity; }
 .poster-thumbnail { z-index: 1; }
 .poster-full { z-index: 2; }
 .poster-image.loaded { opacity: 1; }

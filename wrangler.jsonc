@@ -21,7 +21,9 @@
   "migrations": [
     {
       "tag": "v1",
-      "new_sqlite_classes": ["ShowMateRoom"]
+      "new_sqlite_classes": [
+        "ShowMateRoom"
+      ]
     }
   ],
   "ai": {
@@ -62,5 +64,10 @@
   ],
   "observability": {
     "enabled": true
+  },
+  "triggers": {
+    "crons": [
+      "0 10 * * *"
+    ]
   }
 }

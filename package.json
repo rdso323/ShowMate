@@ -10,12 +10,15 @@
     "check": "tsc --noEmit",
     "test": "vitest run",
     "cf-typegen": "wrangler types",
-    "db:migrate:local": "wrangler d1 migrations apply showmate-db --local",
+    "db:migrate:local": "wrangler d1 migrations apply showmate-db --local --config wrangler.local.jsonc",
     "db:migrate:individual": "wrangler d1 migrations apply showmate-db --remote --config wrangler.individual.jsonc",
+    "db:migrate:preview": "wrangler d1 migrations apply showmate-db --remote --config wrangler.preview.jsonc",
     "db:migrate:public": "wrangler d1 migrations apply showmate-db --remote --config wrangler.public.jsonc",
     "deploy": "npm run build && wrangler deploy",
     "deploy:individual": "npm run build && wrangler deploy --config wrangler.individual.jsonc",
-    "deploy:public": "npm run build && wrangler deploy --config wrangler.public.jsonc"
+    "deploy:preview": "npm run build && wrangler deploy --config wrangler.preview.jsonc",
+    "deploy:public": "npm run build && wrangler deploy --config wrangler.public.jsonc",
+    "catalog:sync:local": "curl -s -X POST http://localhost:8787/api/catalog/sync"
   },
   "dependencies": {
     "@vitejs/plugin-react": "4.7.0",
